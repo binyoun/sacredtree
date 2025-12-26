@@ -155,13 +155,12 @@
         id="scene">
 
         <a-assets>
-            <!-- Replace with your actual GLB model -->
             <a-asset-item id="model6" src="models/model6.glb"></a-asset-item>
         </a-assets>
 
         <a-marker type="barcode" value="1" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
             <a-entity
-                gltf-model="#gelora-east"
+                gltf-model="#model6"
                 scale="0.5 0.5 0.5"
                 position="0 0 0"
                 animation="property: rotation; to: 0 360 0; loop: true; dur: 20000; easing: linear"
