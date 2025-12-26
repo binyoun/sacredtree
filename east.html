@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>동 East | 신목 </title>
+    <title>동 East | 신목 겔로라</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
     <style>
@@ -218,7 +218,7 @@
             model.setAttribute('animation__rise1', {
                 property: 'position',
                 from: '0 -0.5 -5',
-                to: '0 0 -3.5',
+                to: '0 -0.5 -3.5',
                 dur: 5000,
                 easing: 'easeInOutQuad'
             });
@@ -244,8 +244,8 @@
                 
                 model.setAttribute('animation__rise2', {
                     property: 'position',
-                    from: '0 0 -3.5',
-                    to: '0 0.3 -2.5',
+                    from: '0 -0.5 -3.5',
+                    to: '0 -0.5 -2.8',
                     dur: 4000,
                     easing: 'easeInOutSine'
                 });
@@ -277,8 +277,8 @@
                 
                 model.setAttribute('animation__rise3', {
                     property: 'position',
-                    from: '0 0.3 -2.5',
-                    to: '0 0.5 -2',
+                    from: '0 -0.5 -2.8',
+                    to: '0 -0.5 -2.5',
                     dur: 5000,
                     easing: 'easeOutSine'
                 });
@@ -295,18 +295,17 @@
                 });
             }, 9000);
             
-            // Phase 4: Gentle floating in place (stays in frame)
+            // Phase 4: Gentle floating in center - back and forth
             setTimeout(() => {
                 // Remove Phase 3 pulsing
                 model.removeAttribute('animation__pulse3');
                 
-                // Rotation continues from Phase 1
-                // Add gentle floating animation - stays at comfortable distance
+                // Gentle back and forth floating (stays centered in frame)
                 model.setAttribute('animation__float', {
                     property: 'position',
-                    from: '0 0.3 -2.2',
-                    to: '0 0.7 -1.8',
-                    dur: 6000,
+                    from: '0 -0.5 -2.8',
+                    to: '0 -0.5 -2.2',
+                    dur: 5000,
                     loop: true,
                     dir: 'alternate',
                     easing: 'easeInOutSine'
