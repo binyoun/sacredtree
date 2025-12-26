@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bin Youn, Sacred Tree(신목, 神木), 2025</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --east-green: #2D6A4F;
+            --south-red: #C73E3A;
+            --center-yellow: #D4A017;
+            --west-white: #F5F5F0;
+            --north-blue: #1E4D8C;
+            --bg-dark: #0D0D0D;
+        }
+
+        body {
+            font-family: 'Noto Serif KR', serif;
+            background: var(--bg-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Sacred Tree Center - positioned at top */
+        .sacred-tree {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #4a3728, #2a1f18);
+            box-shadow: 
+                0 0 60px rgba(212, 160, 23, 0.3),
+                inset 0 0 30px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .sacred-tree::before {
+            content: 'Sacred Tree';
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--center-yellow);
+            text-shadow: 0 0 10px rgba(212, 160, 23, 0.5);
+            text-align: center;
+            position: absolute;
+            top: 30%;
+        }
+
+        .sacred-tree::after {
+            content: '신목 · 神木';
+            font-size: 0.55rem;
+            font-weight: 300;
+            color: rgba(212, 160, 23, 0.7);
+            position: absolute;
+            top: 55%;
+        }
+
+        /* Cloth Lines - flowing from tree to bottom half-circle arc */
+        .cloth-line {
+            position: absolute;
+            width: 4px;
+            height: 220px;
+            transform-origin: top center;
+            opacity: 0.7;
+            top: 22%;
+            left: 50%;
+        }
+
+        .cloth-line.east {
+            background: linear-gradient(to bottom, #2D6A4F, rgba(45, 106, 79, 0.1));
+            transform: translateX(-50%) rotate(-45deg);
+        }
+        .cloth-line.south {
+            background: linear-gradient(to bottom, #C73E3A, rgba(199, 62, 58, 0.1));
+            transform: translateX(-50%) rotate(-25deg);
+        }
+        .cloth-line.center-line {
+            background: linear-gradient(to bottom, #D4A017, rgba(212, 160, 23, 0.1));
+            transform: translateX(-50%) rotate(0deg);
+            height: 280px;
+        }
+        .cloth-line.west {
+            background: linear-gradient(to bottom, #F5F5F0, rgba(245, 245, 240, 0.1));
+            transform: translateX(-50%) rotate(25deg);
+        }
+        .cloth-line.north {
+            background: linear-gradient(to bottom, #1E4D8C, rgba(30, 77, 140, 0.1));
+            transform: translateX(-50%) rotate(45deg);
+        }
+
+        /* Direction Portals */
+        .portal {
+            position: absolute;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+
+        .portal:hover {
+            animation-play-state: paused;
+            transform: scale(1.15);
+            z-index: 20;
+        }
+
+        .portal::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .portal-english {
+            font-size: 0.5rem;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            opacity: 0.85;
+        }
+
+        .portal-korean {
+            font-size: 0.45rem;
+            font-weight: 300;
+            opacity: 0.75;
+            margin-top: 1px;
+        }
+
+        .portal-chinese {
+            font-size: 0.45rem;
+            font-weight: 300;
+            opacity: 0.7;
+            margin-top: 1px;
+        }
+
+        /* Pulsing glow animation for portals */
+        @keyframes glowPulse {
+            0%, 100% { 
+                box-shadow: 0 0 20px var(--glow-color), 0 0 40px var(--glow-color);
+                transform: scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 35px var(--glow-color), 0 0 70px var(--glow-color), 0 0 100px var(--glow-color);
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes glowPulseCenter {
+            0%, 100% { 
+                box-shadow: 0 0 20px var(--glow-color), 0 0 40px var(--glow-color);
+                transform: translateX(-50%) scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 35px var(--glow-color), 0 0 70px var(--glow-color), 0 0 100px var(--glow-color);
+                transform: translateX(-50%) scale(1.05);
+            }
+        }
+
+        /* Individual Portal Styles - Half Circle Arc (bottom curve) */
+        /* Position 1: East (upper left, closest to tree) */
+        .portal.east {
+            --glow-color: rgba(45, 106, 79, 0.6);
+            top: 35%;
+            left: 5%;
+            background: radial-gradient(circle at 30% 30%, #3D7A5F, var(--east-green));
+            color: #fff;
+            animation: glowPulse 3s ease-in-out infinite;
+            animation-delay: 0s;
+        }
+        .portal.east::before { background: var(--east-green); }
+
+        /* Position 2: South (middle left) */
+        .portal.south {
+            --glow-color: rgba(199, 62, 58, 0.6);
+            top: 55%;
+            left: 18%;
+            background: radial-gradient(circle at 30% 30%, #D74E4A, var(--south-red));
+            color: #fff;
+            animation: glowPulse 3s ease-in-out infinite;
+            animation-delay: 0.6s;
+        }
+        .portal.south::before { background: var(--south-red); }
+
+        /* Position 3: Center (bottom of arc, furthest from tree) */
+        .portal.center {
+            --glow-color: rgba(212, 160, 23, 0.6);
+            bottom: 5%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: radial-gradient(circle at 30% 30%, #E4B027, var(--center-yellow));
+            color: #1a1a1a;
+            animation: glowPulseCenter 3s ease-in-out infinite;
+            animation-delay: 1.2s;
+        }
+        .portal.center::before { background: var(--center-yellow); }
+        .portal.center:hover { transform: translateX(-50%) scale(1.15); animation-play-state: paused; }
+
+        /* Position 4: West (middle right) */
+        .portal.west {
+            --glow-color: rgba(245, 245, 240, 0.4);
+            top: 55%;
+            right: 18%;
+            background: radial-gradient(circle at 30% 30%, #fff, var(--west-white));
+            color: #1a1a1a;
+            animation: glowPulse 3s ease-in-out infinite;
+            animation-delay: 1.8s;
+        }
+        .portal.west::before { background: var(--west-white); }
+
+        /* Position 5: North (upper right, closest to tree) */
+        .portal.north {
+            --glow-color: rgba(30, 77, 140, 0.6);
+            top: 35%;
+            right: 5%;
+            background: radial-gradient(circle at 30% 30%, #2E5D9C, var(--north-blue));
+            color: #fff;
+            animation: glowPulse 3s ease-in-out infinite;
+            animation-delay: 2.4s;
+        }
+        .portal.north::before { background: var(--north-blue); }
+
+        /* Title - at bottom */
+        .title {
+            text-align: center;
+            margin-top: 2rem;
+            padding-bottom: 1.5rem;
+        }
+
+        .title h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            color: var(--center-yellow);
+            text-shadow: 0 0 20px rgba(212, 160, 23, 0.3);
+        }
+
+        .title p {
+            font-size: 0.85rem;
+            font-weight: 300;
+            color: #666;
+            margin-top: 0.3rem;
+            letter-spacing: 0.1em;
+        }
+
+        .title .credit {
+            font-size: 0.7rem;
+            color: #555;
+            margin-top: 0.5rem;
+        }
+
+        /* Instructions - at top */
+        .instructions {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding: 1rem 2rem 0;
+        }
+
+        .instructions p {
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        /* NFC indicator */
+        .nfc-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            color: #555;
+            font-size: 0.75rem;
+        }
+
+        .nfc-icon {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #555;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nfc-icon::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #555;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Instructions at top -->
+    <div class="instructions">
+        <p>Choose your direction · Tap to awaken Gelora</p>
+        <div class="nfc-hint">
+            <div class="nfc-icon"></div>
+            <span>NFC activation at each seated position</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Cloth Lines from Tree -->
+        <div class="cloth-line east"></div>
+        <div class="cloth-line south"></div>
+        <div class="cloth-line center-line"></div>
+        <div class="cloth-line west"></div>
+        <div class="cloth-line north"></div>
+
+        <!-- Sacred Tree Center -->
+        <div class="sacred-tree"></div>
+
+        <!-- 5 Direction Portals - Half Circle: East → South → Center → West → North -->
+        <a href="east.html" class="portal east">
+            <span class="portal-english">EAST</span>
+            <span class="portal-korean">동</span>
+            <span class="portal-chinese">木</span>
+        </a>
+
+        <a href="south.html" class="portal south">
+            <span class="portal-english">SOUTH</span>
+            <span class="portal-korean">남</span>
+            <span class="portal-chinese">火</span>
+        </a>
+
+        <a href="center.html" class="portal center">
+            <span class="portal-english">CENTER</span>
+            <span class="portal-korean">중</span>
+            <span class="portal-chinese">土</span>
+        </a>
+
+        <a href="west.html" class="portal west">
+            <span class="portal-english">WEST</span>
+            <span class="portal-korean">서</span>
+            <span class="portal-chinese">金</span>
+        </a>
+
+        <a href="north.html" class="portal north">
+            <span class="portal-english">NORTH</span>
+            <span class="portal-korean">북</span>
+            <span class="portal-chinese">水</span>
+        </a>
+    </div>
+
+    <!-- Title and Credit at bottom -->
+    <div class="title">
+        <h1>Sacred Tree</h1>
+        <p>신목 · 神木</p>
+        <p class="credit">Bin Youn, 2025</p>
+    </div>
+</body>
+</html>
