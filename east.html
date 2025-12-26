@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>동 East | 신목 Sacred Tree</title>
+    <title> Green East | Sacred Tree 신목 </title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
     <style>
@@ -154,17 +154,11 @@
         id="scene">
 
         <a-assets>
-            <a-asset-item id="model6" src="models/model6.glb"></a-asset-item>
+            <a-asset-item id="model8" src="models/model8.glb"></a-asset-item>
         </a-assets>
 
-        <!-- Model appears in front of camera -->
-        <a-entity
-            gltf-model="#model6"
-            scale="0.5 0.5 0.5"
-            position="0 0 -3"
-            animation="property: rotation; to: 0 360 0; loop: true; dur: 20000; easing: linear"
-            animation__float="property: position; from: 0 0 -3; to: 0 0.3 -3; loop: true; dur: 3000; easing: easeInOutSine; dir: alternate">
-        </a-entity>
+        <!-- Model container for growth animation -->
+        <a-entity id="modelContainer"></a-entity>
 
         <a-entity camera></a-entity>
     </a-scene>
@@ -181,15 +175,144 @@
     <script>
         // Hide loading screen when scene is ready
         document.querySelector('a-scene').addEventListener('loaded', function() {
+            // Create and load model with growth animation
             setTimeout(() => {
-                document.getElementById('loading').classList.add('hidden');
-            }, 2000);
+                createModel();
+            }, 300);
         });
 
-        // Fallback: Hide loading after 4 seconds
-        setTimeout(() => {
-            document.getElementById('loading').classList.add('hidden');
-        }, 4000);
+        function createModel() {
+            const container = document.getElementById('modelContainer');
+            const model = document.createElement('a-entity');
+            
+            model.setAttribute('gltf-model', '#model8');
+            model.setAttribute('position', '0 -0.8 -2');
+            model.setAttribute('scale', '0.1 0.1 0.1');
+            model.setAttribute('visible', true);
+            
+            container.appendChild(model);
+            
+            // Wait for model to FULLY LOAD before starting animation
+            model.addEventListener('model-loaded', () => {
+                console.log('Model loaded, starting animation');
+                // Hide the loading overlay
+                document.getElementById('loading').classList.add('hidden');
+                
+                // Start the growth animation after a brief delay
+                setTimeout(() => {
+                    startGrowthAnimation(model);
+                }, 100);
+            });
+        }
+
+        function startGrowthAnimation(model) {
+            // Phase 1: Very slow emergence from ground
+            model.setAttribute('animation__grow1', {
+                property: 'scale',
+                from: '0.1 0.1 0.1',
+                to: '0.45 0.45 0.45',
+                dur: 4000,
+                easing: 'easeInOutQuad'
+            });
+            
+            model.setAttribute('animation__rise1', {
+                property: 'position',
+                from: '0 -0.8 -2',
+                to: '0 0 -2',
+                dur: 5000,
+                easing: 'easeInOutQuad'
+            });
+            
+            // Start rotation from the beginning (Phase 1)
+            model.setAttribute('animation__rotate', {
+                property: 'rotation',
+                to: '0 360 0',
+                dur: 40000,
+                loop: true,
+                easing: 'linear'
+            });
+            
+            // Phase 2: Continue growing gradually WITH GENTLE PULSING
+            setTimeout(() => {
+                model.setAttribute('animation__grow2', {
+                    property: 'scale',
+                    from: '0.45 0.45 0.45',
+                    to: '0.8 0.8 0.8',
+                    dur: 4000,
+                    easing: 'easeInOutSine'
+                });
+                
+                model.setAttribute('animation__rise2', {
+                    property: 'position',
+                    from: '0 0 -2',
+                    to: '0 0.5 -2',
+                    dur: 4000,
+                    easing: 'easeInOutSine'
+                });
+                
+                // Add gentle pulsing (breathing effect)
+                model.setAttribute('animation__pulse2', {
+                    property: 'scale',
+                    from: '0.4 0.4 0.4',
+                    to: '0.48 0.48 0.48',
+                    dur: 2000,
+                    loop: true,
+                    dir: 'alternate',
+                    easing: 'easeInOutSine'
+                });
+            }, 4000);
+            
+            // Phase 3: Final growth to human size WITH GENTLE PULSING
+            setTimeout(() => {
+                // Remove Phase 2 pulsing
+                model.removeAttribute('animation__pulse2');
+                
+                model.setAttribute('animation__grow3', {
+                    property: 'scale',
+                    from: '0.8 0.8 0.8',
+                    to: '1 1 1',
+                    dur: 3000,
+                    easing: 'easeOutSine'
+                });
+                
+                model.setAttribute('animation__rise3', {
+                    property: 'position',
+                    from: '0 0.5 -2',
+                    to: '0 0.8 0',
+                    dur: 5000,
+                    easing: 'easeOutSine'
+                });
+                
+                // Add gentle pulsing (breathing effect)
+                model.setAttribute('animation__pulse3', {
+                    property: 'scale',
+                    from: '0.8 0.8 0.8',
+                    to: '0.95 0.95 0.95',
+                    dur: 2000,
+                    loop: true,
+                    dir: 'alternate',
+                    easing: 'easeInOutSine'
+                });
+            }, 9000);
+            
+            // Phase 4: Gentle continuous animations (after fully grown)
+            setTimeout(() => {
+                // Remove Phase 3 pulsing
+                model.removeAttribute('animation__pulse3');
+                
+                // Rotation continues from Phase 1
+                // Add floating animation
+                model.setAttribute('animation__float', {
+                    property: 'position',
+                    from: '0 0.1 0.3',
+                    to: '0 1.2 -0.5',
+                    dur: 10000,
+                    loop: true,
+                    dir: 'alternate',
+                    easing: 'easeInOutSine'
+                });
+            }, 19000);
+        }
     </script>
 </body>
 </html>
