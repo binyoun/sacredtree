@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>서 West | 신목 겔로라</title>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
+    <style>
+        * { margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Helvetica Neue', sans-serif;
+            overflow: hidden;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #F5F5F0 0%, #C8C8C0 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.8s ease;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .direction-symbol {
+            font-size: 5rem;
+            color: #333;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 40px rgba(0,0,0,0.1);
+            animation: breathe 2s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .direction-name {
+            font-size: 1.2rem;
+            color: rgba(0,0,0,0.6);
+            letter-spacing: 0.3em;
+            margin-bottom: 2rem;
+        }
+
+        .loading-text {
+            font-size: 0.9rem;
+            color: rgba(0,0,0,0.4);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.7; }
+        }
+
+        .info-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(245, 245, 240, 0.98), transparent);
+            padding: 2rem 1.5rem 1.5rem;
+            z-index: 100;
+            color: #1a1a1a;
+        }
+
+        .element-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .element-tag {
+            background: rgba(0,0,0,0.1);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+        }
+
+        .direction-title {
+            font-size: 1.5rem;
+            font-weight: 300;
+        }
+
+        .direction-title span {
+            font-weight: 600;
+        }
+
+        .description {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            line-height: 1.5;
+            margin-top: 0.5rem;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 1.5rem;
+            left: 1.5rem;
+            width: 44px;
+            height: 44px;
+            background: rgba(200, 200, 192, 0.9);
+            border: none;
+            border-radius: 50%;
+            color: #333;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            text-decoration: none;
+        }
+
+        .a-enter-vr { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loading">
+        <div class="direction-symbol">서</div>
+        <div class="direction-name">WEST · METAL · AUTUMN</div>
+        <div class="loading-text">Awakening Gelora...</div>
+    </div>
+
+    <a href="index.html" class="back-btn">←</a>
+
+    <a-scene
+        embedded
+        arjs="sourceType: webcam; debugUIEnabled: false;"
+        renderer="logarithmicDepthBuffer: true; antialias: true; alpha: true;"
+        vr-mode-ui="enabled: false"
+        id="scene">
+
+        <a-assets>
+            <a-asset-item id="model5" src="models/model5.glb"></a-asset-item>
+        </a-assets>
+
+        <!-- Model container for growth animation -->
+        <a-entity id="modelContainer"></a-entity>
+
+        <a-entity camera></a-entity>
+    </a-scene>
+
+    <div class="info-panel">
+        <div class="element-info">
+            <span class="element-tag">金 METAL · 秋 AUTUMN</span>
+        </div>
+        <h2 class="direction-title"><span>서</span> West</h2>
+        <p class="description">Harvest, clarity, the setting sun. The Gelora of the West carries metal's essence — refinement, release, and the wisdom of letting go.</p>
+    </div>
+
+    <script>
+        document.querySelector('a-scene').addEventListener('loaded', function() {
+            setTimeout(() => {
+                createModel();
+            }, 300);
+        });
+
+        function createModel() {
+            const container = document.getElementById('modelContainer');
+            const model = document.createElement('a-entity');
+            
+            model.setAttribute('gltf-model', '#model5');
+            model.setAttribute('position', '0 -0.5 -5');
+            model.setAttribute('scale', '0.1 0.1 0.1');
+            model.setAttribute('visible', true);
+            
+            container.appendChild(model);
+            
+            model.addEventListener('model-loaded', () => {
+                document.getElementById('loading').classList.add('hidden');
+                setTimeout(() => {
+                    startGrowthAnimation(model);
+                }, 100);
+            });
+        }
+
+        function startGrowthAnimation(model) {
+            // Phase 1: Emerge from far back (where sacred tree is) and come forward
+            model.setAttribute('animation__grow1', {
+                property: 'scale',
+                from: '0.1 0.1 0.1',
+                to: '0.45 0.45 0.45',
+                dur: 4000,
+                easing: 'easeInOutQuad'
+            });
+            
+            model.setAttribute('animation__rise1', {
+                property: 'position',
+                from: '0 -0.5 -5',
+                to: '0 -0.5 -3.5',
+                dur: 5000,
+                easing: 'easeInOutQuad'
+            });
+            
+            model.setAttribute('animation__rotate', {
+                property: 'rotation',
+                to: '0 360 0',
+                dur: 40000,
+                loop: true,
+                easing: 'linear'
+            });
+            
+            // Phase 2: Continue growing and coming forward
+            setTimeout(() => {
+                model.setAttribute('animation__grow2', {
+                    property: 'scale',
+                    from: '0.45 0.45 0.45',
+                    to: '0.8 0.8 0.8',
+                    dur: 4000,
+                    easing: 'easeInOutSine'
+                });
+                
+                model.setAttribute('animation__rise2', {
+                    property: 'position',
+                    from: '0 -0.5 -3.5',
+                    to: '0 -0.5 -2.8',
+                    dur: 4000,
+                    easing: 'easeInOutSine'
+                });
+                
+                model.setAttribute('animation__pulse2', {
+                    property: 'scale',
+                    from: '0.4 0.4 0.4',
+                    to: '0.48 0.48 0.48',
+                    dur: 2000,
+                    loop: true,
+                    dir: 'alternate',
+                    easing: 'easeInOutSine'
+                });
+            }, 4000);
+            
+            // Phase 3: Final growth, arrive at comfortable viewing distance
+            setTimeout(() => {
+                model.removeAttribute('animation__pulse2');
+                
+                model.setAttribute('animation__grow3', {
+                    property: 'scale',
+                    from: '0.8 0.8 0.8',
+                    to: '1 1 1',
+                    dur: 3000,
+                    easing: 'easeOutSine'
+                });
+                
+                model.setAttribute('animation__rise3', {
+                    property: 'position',
+                    from: '0 -0.5 -2.8',
+                    to: '0 -0.5 -2.5',
+                    dur: 5000,
+                    easing: 'easeOutSine'
+                });
+                
+                model.setAttribute('animation__pulse3', {
+                    property: 'scale',
+                    from: '0.8 0.8 0.8',
+                    to: '0.95 0.95 0.95',
+                    dur: 2000,
+                    loop: true,
+                    dir: 'alternate',
+                    easing: 'easeInOutSine'
+                });
+            }, 9000);
+            
+            // Phase 4: Gentle floating in center - back and forth
+            setTimeout(() => {
+                model.removeAttribute('animation__pulse3');
+                
+                model.setAttribute('animation__float', {
+                    property: 'position',
+                    from: '0 -0.5 -2.8',
+                    to: '0 -0.5 -2.2',
+                    dur: 5000,
+                    loop: true,
+                    dir: 'alternate',
+                    easing: 'easeInOutSine'
+                });
+            }, 19000);
+        }
+    </script>
+</body>
+</html>
