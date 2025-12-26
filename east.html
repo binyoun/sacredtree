@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>동 East | 신목 겔로라</title>
+    <title>동 East | 신목 Sacred Tree</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
     <style>
@@ -145,28 +145,26 @@
     <!-- Back Button -->
     <a href="index.html" class="back-btn">←</a>
 
-    <!-- AR Scene -->
+    <!-- AR Scene - Markerless (model appears on camera activation) -->
     <a-scene
         embedded
-        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
-        renderer="logarithmicDepthBuffer: true; antialias: true;"
+        arjs="sourceType: webcam; debugUIEnabled: false;"
+        renderer="logarithmicDepthBuffer: true; antialias: true; alpha: true;"
         vr-mode-ui="enabled: false"
-        gesture-detector
         id="scene">
 
         <a-assets>
             <a-asset-item id="model6" src="models/model6.glb"></a-asset-item>
         </a-assets>
 
-        <a-marker type="barcode" value="1" smooth="true" smoothCount="10" smoothTolerance="0.01" smoothThreshold="5">
-            <a-entity
-                gltf-model="#model6"
-                scale="0.5 0.5 0.5"
-                position="0 0 0"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 20000; easing: linear"
-                animation__float="property: position; from: 0 0 0; to: 0 0.3 0; loop: true; dur: 3000; easing: easeInOutSine; dir: alternate">
-            </a-entity>
-        </a-marker>
+        <!-- Model appears in front of camera -->
+        <a-entity
+            gltf-model="#model6"
+            scale="0.5 0.5 0.5"
+            position="0 0 -3"
+            animation="property: rotation; to: 0 360 0; loop: true; dur: 20000; easing: linear"
+            animation__float="property: position; from: 0 0 -3; to: 0 0.3 -3; loop: true; dur: 3000; easing: easeInOutSine; dir: alternate">
+        </a-entity>
 
         <a-entity camera></a-entity>
     </a-scene>
