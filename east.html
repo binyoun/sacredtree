@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> Green East | Sacred Tree 신목 </title>
+    <title>동 East | 신목 </title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
     <style>
@@ -186,7 +186,7 @@
             const model = document.createElement('a-entity');
             
             model.setAttribute('gltf-model', '#model8');
-            model.setAttribute('position', '0 -0.8 -2');
+            model.setAttribute('position', '0 -0.5 -5');
             model.setAttribute('scale', '0.1 0.1 0.1');
             model.setAttribute('visible', true);
             
@@ -206,7 +206,7 @@
         }
 
         function startGrowthAnimation(model) {
-            // Phase 1: Very slow emergence from ground
+            // Phase 1: Emerge from far back (where sacred tree is) and come forward
             model.setAttribute('animation__grow1', {
                 property: 'scale',
                 from: '0.1 0.1 0.1',
@@ -217,8 +217,8 @@
             
             model.setAttribute('animation__rise1', {
                 property: 'position',
-                from: '0 -0.9 -2',
-                to: '0 0 -2',
+                from: '0 -0.5 -5',
+                to: '0 0 -3.5',
                 dur: 5000,
                 easing: 'easeInOutQuad'
             });
@@ -232,7 +232,7 @@
                 easing: 'linear'
             });
             
-            // Phase 2: Continue growing gradually WITH GENTLE PULSING
+            // Phase 2: Continue growing and coming forward
             setTimeout(() => {
                 model.setAttribute('animation__grow2', {
                     property: 'scale',
@@ -244,8 +244,8 @@
                 
                 model.setAttribute('animation__rise2', {
                     property: 'position',
-                    from: '0 0 -2',
-                    to: '0 0.5 -2',
+                    from: '0 0 -3.5',
+                    to: '0 0.3 -2.5',
                     dur: 4000,
                     easing: 'easeInOutSine'
                 });
@@ -262,7 +262,7 @@
                 });
             }, 4000);
             
-            // Phase 3: Final growth to human size WITH GENTLE PULSING
+            // Phase 3: Final growth, arrive at comfortable viewing distance
             setTimeout(() => {
                 // Remove Phase 2 pulsing
                 model.removeAttribute('animation__pulse2');
@@ -277,8 +277,8 @@
                 
                 model.setAttribute('animation__rise3', {
                     property: 'position',
-                    from: '0 0.5 -2',
-                    to: '0 0.8 0',
+                    from: '0 0.3 -2.5',
+                    to: '0 0.5 -2',
                     dur: 5000,
                     easing: 'easeOutSine'
                 });
@@ -295,18 +295,18 @@
                 });
             }, 9000);
             
-            // Phase 4: Gentle continuous animations (after fully grown)
+            // Phase 4: Gentle floating in place (stays in frame)
             setTimeout(() => {
                 // Remove Phase 3 pulsing
                 model.removeAttribute('animation__pulse3');
                 
                 // Rotation continues from Phase 1
-                // Add floating animation
+                // Add gentle floating animation - stays at comfortable distance
                 model.setAttribute('animation__float', {
                     property: 'position',
-                    from: '0 0.1 0.3',
-                    to: '0 0.3 -0.5',
-                    dur: 10000,
+                    from: '0 0.3 -2.2',
+                    to: '0 0.7 -1.8',
+                    dur: 6000,
                     loop: true,
                     dir: 'alternate',
                     easing: 'easeInOutSine'
