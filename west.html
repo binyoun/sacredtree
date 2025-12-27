@@ -1,182 +1,215 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>서 West | 신목 겔로라</title>
+    <meta charset="utf-8">
+    <title>서 West · Sacred Tree</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js/aframe/build/aframe-ar.js"></script>
     <style>
-        * { margin: 0; padding: 0; }
-        
-        body {
-            font-family: 'Helvetica Neue', sans-serif;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
             overflow: hidden;
+            background: #000;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
         }
 
-        .loading-overlay {
+        #videoContainer {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #F5F5F0 0%, #C8C8C0 100%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            transition: opacity 0.8s ease;
+            z-index: 1;
+        }
+        #cameraVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
-        .loading-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
+        #canvas3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
         }
 
-        .direction-symbol {
-            font-size: 5rem;
-            color: #333;
-            margin-bottom: 1rem;
-            text-shadow: 0 0 40px rgba(0,0,0,0.1);
-            animation: breathe 2s ease-in-out infinite;
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5vh;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 100%);
+            z-index: 100;
         }
 
-        @keyframes breathe {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-        }
-
-        .direction-name {
-            font-size: 1.2rem;
-            color: rgba(0,0,0,0.6);
-            letter-spacing: 0.3em;
-            margin-bottom: 2rem;
-        }
-
-        .loading-text {
-            font-size: 0.9rem;
-            color: rgba(0,0,0,0.4);
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 0.7; }
-        }
-
-        .info-panel {
+        .bottom-bar {
             position: fixed;
             bottom: 0;
             left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(245, 245, 240, 0.98), transparent);
-            padding: 2rem 1.5rem 1.5rem;
+            width: 100%;
+            height: 5vh;
+            background: linear-gradient(0deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 100%);
             z-index: 100;
-            color: #1a1a1a;
         }
 
-        .element-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
+        .direction-label {
+            position: fixed;
+            bottom: 6vh;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            text-align: center;
+            z-index: 100;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.8);
         }
-
-        .element-tag {
-            background: rgba(0,0,0,0.1);
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            letter-spacing: 0.1em;
+        .direction-label .english {
+            font-size: 0.6rem;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
         }
-
-        .direction-title {
-            font-size: 1.5rem;
-            font-weight: 300;
+        .direction-label .korean-chinese {
+            font-size: 0.5rem;
+            letter-spacing: 0.15em;
+            opacity: 0.85;
+            margin-top: 0.2rem;
         }
-
-        .direction-title span {
-            font-weight: 600;
-        }
-
-        .description {
-            font-size: 0.85rem;
+        .direction-label .gelora-desc {
+            font-size: 0.45rem;
+            letter-spacing: 0.05em;
             opacity: 0.7;
-            line-height: 1.5;
-            margin-top: 0.5rem;
+            margin-top: 0.3rem;
+            font-style: italic;
+            max-width: 90vw;
+            line-height: 1.4;
+            text-align: justify;
         }
 
         .back-btn {
             position: fixed;
-            top: 1.5rem;
-            left: 1.5rem;
-            width: 44px;
-            height: 44px;
-            background: rgba(200, 200, 192, 0.9);
-            border: none;
+            top: 6vh;
+            left: 1rem;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0,0,0,0.2);
             border-radius: 50%;
             color: #333;
-            font-size: 1.5rem;
-            cursor: pointer;
-            z-index: 100;
+            font-size: 1.2rem;
+            z-index: 101;
             display: flex;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(10px);
             text-decoration: none;
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            transition: opacity 0.5s ease;
+        }
+        .loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loading .symbol {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            animation: pulse 2s ease-in-out infinite, glowWhite 2s ease-in-out infinite;
+        }
+        .loading .cardinal {
+            font-size: 1.2rem;
+            letter-spacing: 0.4em;
+            opacity: 0.9;
+            margin-bottom: 0.3rem;
+            animation: pulse 2s ease-in-out infinite 0.3s;
+        }
+        .loading .text {
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            opacity: 0.5;
+            animation: pulse 2s ease-in-out infinite 0.6s;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+        
+        @keyframes glowWhite {
+            0%, 100% { text-shadow: 0 0 10px rgba(255, 255, 255, 0.5), 0 0 20px rgba(200, 200, 200, 0.3), 0 0 30px rgba(150, 150, 150, 0.2); }
+            50% { text-shadow: 0 0 20px rgba(255, 255, 255, 0.9), 0 0 40px rgba(200, 200, 200, 0.6), 0 0 60px rgba(150, 150, 150, 0.4); }
         }
 
         .a-enter-vr { display: none !important; }
     </style>
 </head>
 <body>
-    <div class="loading-overlay" id="loading">
-        <div class="direction-symbol">서</div>
-        <div class="direction-name">WEST · METAL · AUTUMN</div>
-        <div class="loading-text">Awakening Gelora...</div>
+    <div class="loading" id="loading">
+        <div class="symbol">서</div>
+        <div class="cardinal">WEST</div>
+        <div class="text">AWAKENING GELORA</div>
     </div>
+
+    <div class="top-bar"></div>
 
     <a href="index.html" class="back-btn">←</a>
 
-    <a-scene
-        embedded
-        arjs="sourceType: webcam; debugUIEnabled: false;"
-        renderer="logarithmicDepthBuffer: true; antialias: true; alpha: true;"
-        vr-mode-ui="enabled: false"
-        id="scene">
+    <div class="bottom-bar"></div>
 
-        <a-assets>
-            <a-asset-item id="model5" src="models/model5.glb"></a-asset-item>
-        </a-assets>
+    <div class="direction-label">
+        <div class="english">West</div>
+        <div class="korean-chinese">서 · 西</div>
+        <div class="gelora-desc">Gelora 金. Gleaming with autumn's fading light, this spirit carries the wisdom of release and harvest.</div>
+    </div>
 
-        <!-- Model container for growth animation -->
-        <a-entity id="modelContainer"></a-entity>
+    <div id="videoContainer">
+        <video id="cameraVideo" autoplay playsinline></video>
+    </div>
 
-        <a-entity camera></a-entity>
-    </a-scene>
-
-    <div class="info-panel">
-        <div class="element-info">
-            <span class="element-tag">金 METAL · 秋 AUTUMN</span>
-        </div>
-        <h2 class="direction-title"><span>서</span> West</h2>
-        <p class="description">Harvest, clarity, the setting sun. The Gelora of the West carries metal's essence — refinement, release, and the wisdom of letting go.</p>
+    <div id="canvas3d">
+        <a-scene embedded vr-mode-ui="enabled: false" renderer="alpha: true;">
+            <a-camera position="0 0 0"></a-camera>
+            <a-entity id="modelContainer"></a-entity>
+        </a-scene>
     </div>
 
     <script>
-        document.querySelector('a-scene').addEventListener('loaded', function() {
-            setTimeout(() => {
-                createModel();
-            }, 300);
+        navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' }, 
+            audio: false 
+        })
+        .then(function(stream) {
+            const video = document.getElementById('cameraVideo');
+            video.srcObject = stream;
+            video.play();
+            setTimeout(() => { createModel(); }, 300);
+        })
+        .catch(function(err) {
+            console.error('Camera error:', err);
+            createModel();
         });
 
         function createModel() {
             const container = document.getElementById('modelContainer');
             const model = document.createElement('a-entity');
             
-            model.setAttribute('gltf-model', '#model5');
-            model.setAttribute('position', '0 -0.5 -5');
+            model.setAttribute('gltf-model', './models/model5.glb');
+            model.setAttribute('position', '-0.5 -0.5 -5');
             model.setAttribute('scale', '0.1 0.1 0.1');
             model.setAttribute('visible', true);
             
@@ -184,112 +217,60 @@
             
             model.addEventListener('model-loaded', () => {
                 document.getElementById('loading').classList.add('hidden');
-                setTimeout(() => {
-                    startGrowthAnimation(model);
-                }, 100);
+                setTimeout(() => { startGrowthAnimation(model); }, 100);
             });
+
+            setTimeout(() => {
+                document.getElementById('loading').classList.add('hidden');
+            }, 5000);
         }
 
         function startGrowthAnimation(model) {
-            // Phase 1: Emerge from far back (where sacred tree is) and come forward
             model.setAttribute('animation__grow1', {
-                property: 'scale',
-                from: '0.1 0.1 0.1',
-                to: '0.45 0.45 0.45',
-                dur: 4000,
-                easing: 'easeInOutQuad'
+                property: 'scale', from: '0.1 0.1 0.1', to: '0.45 0.45 0.45',
+                dur: 3000, easing: 'easeInOutQuad'
             });
-            
             model.setAttribute('animation__rise1', {
-                property: 'position',
-                from: '0 -0.5 -5',
-                to: '0 -0.5 -3.5',
-                dur: 5000,
-                easing: 'easeInOutQuad'
+                property: 'position', from: '-0.5 -0.5 -5', to: '-0.3 -0.4 -2.5',
+                dur: 3600, easing: 'easeInOutQuad'
             });
-            
             model.setAttribute('animation__rotate', {
-                property: 'rotation',
-                to: '0 360 0',
-                dur: 40000,
-                loop: true,
-                easing: 'linear'
+                property: 'rotation', to: '0 360 0',
+                dur: 36000, loop: true, easing: 'linear'
             });
             
-            // Phase 2: Continue growing and coming forward
             setTimeout(() => {
                 model.setAttribute('animation__grow2', {
-                    property: 'scale',
-                    from: '0.45 0.45 0.45',
-                    to: '0.8 0.8 0.8',
-                    dur: 4000,
-                    easing: 'easeInOutSine'
+                    property: 'scale', from: '0.45 0.45 0.45', to: '0.8 0.8 0.8',
+                    dur: 3000, easing: 'easeInOutSine'
                 });
-                
                 model.setAttribute('animation__rise2', {
-                    property: 'position',
-                    from: '0 -0.5 -3.5',
-                    to: '0 -0.5 -2.8',
-                    dur: 4000,
-                    easing: 'easeInOutSine'
+                    property: 'position', from: '-0.3 -0.4 -2.5', to: '-0.1 -0.5 -1.5',
+                    dur: 3000, easing: 'easeInOutSine'
                 });
-                
-                model.setAttribute('animation__pulse2', {
-                    property: 'scale',
-                    from: '0.4 0.4 0.4',
-                    to: '0.48 0.48 0.48',
-                    dur: 2000,
-                    loop: true,
-                    dir: 'alternate',
-                    easing: 'easeInOutSine'
-                });
-            }, 4000);
+            }, 3000);
             
-            // Phase 3: Final growth, arrive at comfortable viewing distance
             setTimeout(() => {
-                model.removeAttribute('animation__pulse2');
-                
                 model.setAttribute('animation__grow3', {
-                    property: 'scale',
-                    from: '0.8 0.8 0.8',
-                    to: '1 1 1',
-                    dur: 3000,
-                    easing: 'easeOutSine'
+                    property: 'scale', from: '0.8 0.8 0.8', to: '1 1 1',
+                    dur: 2400, easing: 'easeOutSine'
                 });
-                
                 model.setAttribute('animation__rise3', {
-                    property: 'position',
-                    from: '0 -0.5 -2.8',
-                    to: '0 -0.5 -2.5',
-                    dur: 5000,
-                    easing: 'easeOutSine'
+                    property: 'position', from: '-0.1 -0.5 -1.5', to: '0 -0.5 -1.0',
+                    dur: 3600, easing: 'easeOutSine'
                 });
-                
-                model.setAttribute('animation__pulse3', {
-                    property: 'scale',
-                    from: '0.8 0.8 0.8',
-                    to: '0.95 0.95 0.95',
-                    dur: 2000,
-                    loop: true,
-                    dir: 'alternate',
-                    easing: 'easeInOutSine'
-                });
-            }, 9000);
+            }, 6600);
             
-            // Phase 4: Gentle floating in center - back and forth
             setTimeout(() => {
-                model.removeAttribute('animation__pulse3');
-                
-                model.setAttribute('animation__float', {
-                    property: 'position',
-                    from: '0 -0.5 -2.8',
-                    to: '0 -0.5 -2.2',
-                    dur: 5000,
-                    loop: true,
-                    dir: 'alternate',
-                    easing: 'easeInOutSine'
+                model.setAttribute('animation__floatZ', {
+                    property: 'position', from: '0 -0.5 -1.2', to: '0.1 -0.5 -0.6',
+                    dur: 3600, loop: true, dir: 'alternate', easing: 'easeInOutSine'
                 });
-            }, 19000);
+                model.setAttribute('animation__floatY', {
+                    property: 'position', from: '0 -0.6 -0.9', to: '0 -0.4 -0.9',
+                    dur: 4200, loop: true, dir: 'alternate', easing: 'easeInOutSine'
+                });
+            }, 10800);
         }
     </script>
 </body>
