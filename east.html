@@ -143,23 +143,30 @@
             font-size: 3rem;
             margin-bottom: 0.5rem;
             opacity: 0.8;
+            animation: pulse 2s ease-in-out infinite, glowGreen 2s ease-in-out infinite;
         }
         .loading .cardinal {
             font-size: 1.2rem;
             letter-spacing: 0.4em;
             opacity: 0.9;
             margin-bottom: 0.3rem;
-        }
-        .loading .element {
-            font-size: 0.9rem;
-            letter-spacing: 0.3em;
-            opacity: 0.7;
-            margin-bottom: 1rem;
+            animation: pulse 2s ease-in-out infinite 0.3s;
         }
         .loading .text {
             font-size: 0.7rem;
             letter-spacing: 0.3em;
             opacity: 0.5;
+            animation: pulse 2s ease-in-out infinite 0.6s;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+        
+        @keyframes glowGreen {
+            0%, 100% { text-shadow: 0 0 10px rgba(0, 255, 0, 0.5), 0 0 20px rgba(0, 255, 0, 0.3), 0 0 30px rgba(0, 255, 0, 0.2); }
+            50% { text-shadow: 0 0 20px rgba(0, 255, 0, 0.8), 0 0 40px rgba(0, 255, 0, 0.5), 0 0 60px rgba(0, 255, 0, 0.3); }
         }
 
         .a-enter-vr { display: none !important; }
