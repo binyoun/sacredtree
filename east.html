@@ -216,7 +216,7 @@
             const model = document.createElement('a-entity');
             
             model.setAttribute('gltf-model', './models/model8.glb');
-            model.setAttribute('position', '0 -0.5 -5');
+            model.setAttribute('position', '-0.5 -0.5 -5');
             model.setAttribute('scale', '0.1 0.1 0.1');
             model.setAttribute('visible', true);
             
@@ -241,22 +241,22 @@
                 property: 'scale',
                 from: '0.1 0.1 0.1',
                 to: '0.45 0.45 0.45',
-                dur: 2500,
+                dur: 3000,
                 easing: 'easeInOutQuad'
             });
             
             model.setAttribute('animation__rise1', {
                 property: 'position',
-                from: '0 -0.5 -5',
-                to: '0 -0.5 -2.5',
-                dur: 3000,
+                from: '-0.5 -0.5 -5',
+                to: '-0.3 -0.4 -2.5',
+                dur: 3600,
                 easing: 'easeInOutQuad'
             });
             
             model.setAttribute('animation__rotate', {
                 property: 'rotation',
                 to: '0 360 0',
-                dur: 30000,
+                dur: 36000,
                 loop: true,
                 easing: 'linear'
             });
@@ -267,18 +267,18 @@
                     property: 'scale',
                     from: '0.45 0.45 0.45',
                     to: '0.8 0.8 0.8',
-                    dur: 2500,
+                    dur: 3000,
                     easing: 'easeInOutSine'
                 });
                 
                 model.setAttribute('animation__rise2', {
                     property: 'position',
-                    from: '0 -0.5 -2.5',
-                    to: '0 -0.5 -1.5',
-                    dur: 2500,
+                    from: '-0.3 -0.4 -2.5',
+                    to: '-0.1 -0.5 -1.5',
+                    dur: 3000,
                     easing: 'easeInOutSine'
                 });
-            }, 2500);
+            }, 3000);
             
             // Phase 3
             setTimeout(() => {
@@ -286,31 +286,41 @@
                     property: 'scale',
                     from: '0.8 0.8 0.8',
                     to: '1 1 1',
-                    dur: 2000,
+                    dur: 2400,
                     easing: 'easeOutSine'
                 });
                 
                 model.setAttribute('animation__rise3', {
                     property: 'position',
-                    from: '0 -0.5 -1.5',
+                    from: '-0.1 -0.5 -1.5',
                     to: '0 -0.5 -1.0',
-                    dur: 3000,
+                    dur: 3600,
                     easing: 'easeOutSine'
                 });
-            }, 5500);
+            }, 6600);
             
-            // Phase 4: Gentle back and forth - very close to viewer
+            // Phase 4: Gentle floating - Z back/forth, Y up/down, X subtle sway
             setTimeout(() => {
-                model.setAttribute('animation__float', {
+                model.setAttribute('animation__floatZ', {
                     property: 'position',
                     from: '0 -0.5 -1.2',
-                    to: '0 -0.5 -0.6',
-                    dur: 3000,
+                    to: '0.1 -0.5 -0.6',
+                    dur: 3600,
                     loop: true,
                     dir: 'alternate',
                     easing: 'easeInOutSine'
                 });
-            }, 9000);
+                
+                model.setAttribute('animation__floatY', {
+                    property: 'position',
+                    from: '0 -0.6 -0.9',
+                    to: '0 -0.4 -0.9',
+                    dur: 4200,
+                    loop: true,
+                    dir: 'alternate',
+                    easing: 'easeInOutSine'
+                });
+            }, 10800);
         }
     </script>
 </body>
