@@ -91,11 +91,13 @@
         }
         .direction-label .gelora-desc {
             font-size: 0.45rem;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.05em;
             opacity: 0.7;
             margin-top: 0.3rem;
             font-style: italic;
-            white-space: nowrap;
+            max-width: 90vw;
+            line-height: 1.4;
+            text-align: justify;
         }
 
         /* Back button */
@@ -139,13 +141,25 @@
         }
         .loading .symbol {
             font-size: 3rem;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
             opacity: 0.8;
         }
-        .loading .text {
-            font-size: 0.8rem;
+        .loading .cardinal {
+            font-size: 1.2rem;
+            letter-spacing: 0.4em;
+            opacity: 0.9;
+            margin-bottom: 0.3rem;
+        }
+        .loading .element {
+            font-size: 0.9rem;
             letter-spacing: 0.3em;
-            opacity: 0.6;
+            opacity: 0.7;
+            margin-bottom: 1rem;
+        }
+        .loading .text {
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            opacity: 0.5;
         }
 
         .a-enter-vr { display: none !important; }
@@ -155,7 +169,8 @@
     <!-- Loading -->
     <div class="loading" id="loading">
         <div class="symbol">동</div>
-        <div class="text">AWAKENING</div>
+        <div class="cardinal">EAST</div>
+        <div class="text">AWAKENING GELORA</div>
     </div>
 
     <!-- Top bar -->
@@ -171,7 +186,7 @@
     <div class="direction-label">
         <div class="english">East</div>
         <div class="korean-chinese">동 · 東</div>
-        <div class="gelora-desc">Gelora 木. First breath of spring, rising with the sun.</div>
+        <div class="gelora-desc">Gelora 木. Born from the first light of dawn, this spirit carries the energy of spring and new beginnings.</div>
     </div>
 
     <!-- Camera background -->
