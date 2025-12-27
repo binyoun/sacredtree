@@ -45,7 +45,7 @@
             left: 0;
             width: 100%;
             height: 5vh;
-            background: linear-gradient(180deg, rgba(45, 106, 79, 0.8) 0%, rgba(45, 106, 79, 0) 100%);
+            background: linear-gradient(180deg, rgba(0, 128, 0, 0.8) 0%, rgba(0, 128, 0, 0) 100%);
             z-index: 100;
             display: flex;
             align-items: center;
@@ -59,40 +59,14 @@
             left: 0;
             width: 100%;
             height: 5vh;
-            background: linear-gradient(0deg, rgba(45, 106, 79, 0.8) 0%, rgba(45, 106, 79, 0) 100%);
+            background: linear-gradient(0deg, rgba(0, 128, 0, 0.8) 0%, rgba(0, 128, 0, 0) 100%);
             z-index: 100;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        /* Top label - Sacred Tree */
-        .top-label {
-            position: fixed;
-            top: 6vh;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #fff;
-            text-align: center;
-            z-index: 100;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-            font-size: 1.2rem;
-            letter-spacing: 0.3em;
-        }
-
-        /* Sacred tree connection indicator */
-        .tree-connection {
-            position: fixed;
-            top: 5vh;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 2px;
-            height: 15vh;
-            background: linear-gradient(180deg, rgba(45, 106, 79, 0.8), rgba(45, 106, 79, 0.1));
-            z-index: 99;
-        }
-
-        /* Bottom direction label */
+        /* Bottom direction label - 70% smaller */
         .direction-label {
             position: fixed;
             bottom: 6vh;
@@ -101,18 +75,26 @@
             color: #fff;
             text-align: center;
             z-index: 100;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+            text-shadow: 0 1px 6px rgba(0,0,0,0.8);
         }
-        .direction-label .korean {
-            font-size: 2rem;
-            font-weight: 300;
-            letter-spacing: 0.3em;
-        }
-        .direction-label .element {
-            font-size: 0.9rem;
+        .direction-label .english {
+            font-size: 0.6rem;
+            font-weight: 400;
             letter-spacing: 0.2em;
-            opacity: 0.9;
+            text-transform: uppercase;
+        }
+        .direction-label .korean-chinese {
+            font-size: 0.5rem;
+            letter-spacing: 0.15em;
+            opacity: 0.85;
+            margin-top: 0.2rem;
+        }
+        .direction-label .gelora-desc {
+            font-size: 0.45rem;
+            letter-spacing: 0.1em;
+            opacity: 0.7;
             margin-top: 0.3rem;
+            font-style: italic;
         }
 
         /* Back button */
@@ -122,7 +104,7 @@
             left: 1rem;
             width: 40px;
             height: 40px;
-            background: rgba(45, 106, 79, 0.6);
+            background: rgba(0, 128, 0, 0.6);
             border: 1px solid rgba(255,255,255,0.3);
             border-radius: 50%;
             color: #fff;
@@ -141,7 +123,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #1a3d2e 0%, #0d1f17 100%);
+            background: linear-gradient(135deg, #004d00 0%, #001a00 100%);
             z-index: 200;
             display: flex;
             flex-direction: column;
@@ -175,12 +157,8 @@
         <div class="text">AWAKENING</div>
     </div>
 
-    <!-- Top bar with tree connection line -->
+    <!-- Top bar -->
     <div class="top-bar"></div>
-    <div class="tree-connection"></div>
-
-    <!-- Top label - Sacred Tree -->
-    <div class="top-label">신목 神木</div>
 
     <!-- Back button -->
     <a href="index.html" class="back-btn">←</a>
@@ -190,8 +168,9 @@
 
     <!-- Bottom direction label -->
     <div class="direction-label">
-        <div class="korean">동 EAST</div>
-        <div class="element">木 WOOD · SPRING</div>
+        <div class="english">East</div>
+        <div class="korean-chinese">동 · 東</div>
+        <div class="gelora-desc">Gelora 木. First breath of spring, rising with the sun.</div>
     </div>
 
     <!-- Camera background -->
@@ -262,22 +241,22 @@
                 property: 'scale',
                 from: '0.1 0.1 0.1',
                 to: '0.45 0.45 0.45',
-                dur: 4000,
+                dur: 2500,
                 easing: 'easeInOutQuad'
             });
             
             model.setAttribute('animation__rise1', {
                 property: 'position',
                 from: '0 -0.5 -5',
-                to: '0 -0.5 -3.5',
-                dur: 5000,
+                to: '0 -0.5 -2.5',
+                dur: 3000,
                 easing: 'easeInOutQuad'
             });
             
             model.setAttribute('animation__rotate', {
                 property: 'rotation',
                 to: '0 360 0',
-                dur: 40000,
+                dur: 30000,
                 loop: true,
                 easing: 'linear'
             });
@@ -288,18 +267,18 @@
                     property: 'scale',
                     from: '0.45 0.45 0.45',
                     to: '0.8 0.8 0.8',
-                    dur: 4000,
+                    dur: 2500,
                     easing: 'easeInOutSine'
                 });
                 
                 model.setAttribute('animation__rise2', {
                     property: 'position',
-                    from: '0 -0.5 -3.5',
-                    to: '0 -0.5 -2.8',
-                    dur: 4000,
+                    from: '0 -0.5 -2.5',
+                    to: '0 -0.5 -1.5',
+                    dur: 2500,
                     easing: 'easeInOutSine'
                 });
-            }, 4000);
+            }, 2500);
             
             // Phase 3
             setTimeout(() => {
@@ -307,31 +286,31 @@
                     property: 'scale',
                     from: '0.8 0.8 0.8',
                     to: '1 1 1',
-                    dur: 3000,
+                    dur: 2000,
                     easing: 'easeOutSine'
                 });
                 
                 model.setAttribute('animation__rise3', {
                     property: 'position',
-                    from: '0 -0.5 -2.8',
-                    to: '0 -0.5 -2.5',
-                    dur: 5000,
+                    from: '0 -0.5 -1.5',
+                    to: '0 -0.5 -1.0',
+                    dur: 3000,
                     easing: 'easeOutSine'
                 });
-            }, 9000);
+            }, 5500);
             
-            // Phase 4: Gentle back and forth
+            // Phase 4: Gentle back and forth - very close to viewer
             setTimeout(() => {
                 model.setAttribute('animation__float', {
                     property: 'position',
-                    from: '0 -0.5 -2.8',
-                    to: '0 -0.5 -2.2',
-                    dur: 5000,
+                    from: '0 -0.5 -1.2',
+                    to: '0 -0.5 -0.6',
+                    dur: 3000,
                     loop: true,
                     dir: 'alternate',
                     easing: 'easeInOutSine'
                 });
-            }, 15000);
+            }, 9000);
         }
     </script>
 </body>
