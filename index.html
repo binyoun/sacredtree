@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -55,19 +56,26 @@
             height: 120px;
             border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, #4a3728, #2a1f18);
-            box-shadow: 
+            box-shadow:
                 0 0 60px rgba(255, 255, 0, 0.3),
-                inset 0 0 30px rgba(0,0,0,0.5);
+                inset 0 0 30px rgba(0, 0, 0, 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 10;
             animation: treeGlow 3s ease-in-out infinite;
         }
-        
+
         @keyframes treeGlow {
-            0%, 100% { box-shadow: 0 0 40px rgba(255, 255, 0, 0.2), inset 0 0 30px rgba(0,0,0,0.5); }
-            50% { box-shadow: 0 0 80px rgba(255, 255, 0, 0.4), 0 0 120px rgba(255, 255, 0, 0.2), inset 0 0 30px rgba(0,0,0,0.5); }
+
+            0%,
+            100% {
+                box-shadow: 0 0 40px rgba(255, 255, 0, 0.2), inset 0 0 30px rgba(0, 0, 0, 0.5);
+            }
+
+            50% {
+                box-shadow: 0 0 80px rgba(255, 255, 0, 0.4), 0 0 120px rgba(255, 255, 0, 0.2), inset 0 0 30px rgba(0, 0, 0, 0.5);
+            }
         }
 
         .sacred-tree::before {
@@ -104,10 +112,17 @@
             left: 50%;
             animation: clothFlow 4s ease-in-out infinite;
         }
-        
+
         @keyframes clothFlow {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 0.9; }
+
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 0.9;
+            }
         }
 
         .cloth-line.east {
@@ -115,22 +130,26 @@
             transform: translateX(-50%) rotate(-45deg);
             animation-delay: 0s;
         }
+
         .cloth-line.south {
             background: linear-gradient(to bottom, #FF0000, rgba(255, 0, 0, 0.1));
             transform: translateX(-50%) rotate(-25deg);
             animation-delay: 0.4s;
         }
+
         .cloth-line.center-line {
             background: linear-gradient(to bottom, #FFFF00, rgba(255, 255, 0, 0.1));
             transform: translateX(-50%) rotate(0deg);
             height: 280px;
             animation-delay: 0.8s;
         }
+
         .cloth-line.west {
             background: linear-gradient(to bottom, #FFFFFF, rgba(255, 255, 255, 0.1));
             transform: translateX(-50%) rotate(25deg);
             animation-delay: 1.2s;
         }
+
         .cloth-line.north {
             background: linear-gradient(to bottom, #0000FF, rgba(0, 0, 255, 0.1));
             transform: translateX(-50%) rotate(45deg);
@@ -192,30 +211,43 @@
 
         /* Pulsing glow animation for portals */
         @keyframes glowPulse {
-            0%, 100% { 
+
+            0%,
+            100% {
                 box-shadow: 0 0 20px var(--glow-color), 0 0 40px var(--glow-color);
                 transform: scale(1);
             }
-            50% { 
+
+            50% {
                 box-shadow: 0 0 35px var(--glow-color), 0 0 70px var(--glow-color), 0 0 100px var(--glow-color);
                 transform: scale(1.08);
             }
         }
 
         @keyframes glowPulseCenter {
-            0%, 100% { 
+
+            0%,
+            100% {
                 box-shadow: 0 0 20px var(--glow-color), 0 0 40px var(--glow-color);
                 transform: translateX(-50%) scale(1);
             }
-            50% { 
+
+            50% {
                 box-shadow: 0 0 35px var(--glow-color), 0 0 70px var(--glow-color), 0 0 100px var(--glow-color);
                 transform: translateX(-50%) scale(1.08);
             }
         }
-        
+
         @keyframes textGlow {
-            0%, 100% { opacity: 0.8; }
-            50% { opacity: 1; }
+
+            0%,
+            100% {
+                opacity: 0.8;
+            }
+
+            50% {
+                opacity: 1;
+            }
         }
 
         /* Individual Portal Styles - Half Circle Arc (bottom curve) */
@@ -229,7 +261,10 @@
             animation: glowPulse 2.5s ease-in-out infinite;
             animation-delay: 0s;
         }
-        .portal.east::before { background: var(--east-green); }
+
+        .portal.east::before {
+            background: var(--east-green);
+        }
 
         /* Position 2: South (middle left) */
         .portal.south {
@@ -241,7 +276,10 @@
             animation: glowPulse 2.5s ease-in-out infinite;
             animation-delay: 0.5s;
         }
-        .portal.south::before { background: var(--south-red); }
+
+        .portal.south::before {
+            background: var(--south-red);
+        }
 
         /* Position 3: Center (bottom of arc, furthest from tree) */
         .portal.center {
@@ -254,8 +292,15 @@
             animation: glowPulseCenter 2.5s ease-in-out infinite;
             animation-delay: 1s;
         }
-        .portal.center::before { background: var(--center-yellow); }
-        .portal.center:hover { transform: translateX(-50%) scale(1.15); animation-play-state: paused; }
+
+        .portal.center::before {
+            background: var(--center-yellow);
+        }
+
+        .portal.center:hover {
+            transform: translateX(-50%) scale(1.15);
+            animation-play-state: paused;
+        }
 
         /* Position 4: West (middle right) */
         .portal.west {
@@ -267,7 +312,10 @@
             animation: glowPulse 2.5s ease-in-out infinite;
             animation-delay: 1.5s;
         }
-        .portal.west::before { background: var(--west-white); }
+
+        .portal.west::before {
+            background: var(--west-white);
+        }
 
         /* Position 5: North (upper right, closest to tree) */
         .portal.north {
@@ -279,7 +327,10 @@
             animation: glowPulse 2.5s ease-in-out infinite;
             animation-delay: 2s;
         }
-        .portal.north::before { background: var(--north-blue); }
+
+        .portal.north::before {
+            background: var(--north-blue);
+        }
 
         /* Title - at bottom */
         .title {
@@ -348,10 +399,19 @@
             justify-content: center;
             animation: pulse 2s ease-in-out infinite;
         }
-        
+
         @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.7; }
-            50% { transform: scale(1.05); opacity: 1; }
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
         }
 
         .nfc-icon::before {
@@ -363,6 +423,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Instructions at top -->
     <div class="instructions">
@@ -385,31 +446,31 @@
         <div class="sacred-tree"></div>
 
         <!-- 5 Direction Portals - Half Circle: East → South → Center → West → North -->
-        <a href="east.html" class="portal east">
+        <a href="direction.html?dir=east" class="portal east">
             <span class="portal-english">EAST</span>
             <span class="portal-korean">동</span>
             <span class="portal-chinese">木</span>
         </a>
 
-        <a href="south.html" class="portal south">
+        <a href="direction.html?dir=south" class="portal south">
             <span class="portal-english">SOUTH</span>
             <span class="portal-korean">남</span>
             <span class="portal-chinese">火</span>
         </a>
 
-        <a href="center.html" class="portal center">
+        <a href="direction.html?dir=center" class="portal center">
             <span class="portal-english">CENTER</span>
             <span class="portal-korean">중</span>
             <span class="portal-chinese">土</span>
         </a>
 
-        <a href="west.html" class="portal west">
+        <a href="direction.html?dir=west" class="portal west">
             <span class="portal-english">WEST</span>
             <span class="portal-korean">서</span>
             <span class="portal-chinese">金</span>
         </a>
 
-        <a href="north.html" class="portal north">
+        <a href="direction.html?dir=north" class="portal north">
             <span class="portal-english">NORTH</span>
             <span class="portal-korean">북</span>
             <span class="portal-chinese">水</span>
@@ -423,4 +484,5 @@
         <p class="credit">Bin Youn, 2025</p>
     </div>
 </body>
+
 </html>

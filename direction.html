@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Sacred Tree · Gelora</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            background: #000;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        #videoContainer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #cameraVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #canvas3d {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5vh;
+            z-index: 100;
+        }
+
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 5vh;
+            z-index: 100;
+        }
+
+        .direction-label {
+            position: fixed;
+            bottom: 6vh;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            text-align: center;
+            z-index: 100;
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+            white-space: nowrap;
+        }
+
+        .direction-label .english {
+            font-size: 0.85rem;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .direction-label .korean-chinese {
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            opacity: 0.85;
+            margin-top: 0.2rem;
+        }
+
+        .direction-label .gelora-desc {
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            opacity: 0.7;
+            margin-top: 0.3rem;
+            font-style: italic;
+            max-width: 90vw;
+            line-height: 1.4;
+            text-align: justify;
+            white-space: normal;
+        }
+
+        .back-btn {
+            position: fixed;
+            top: 6vh;
+            left: 1rem;
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.2rem;
+            z-index: 101;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+
+        /* Back button for center — dark text on yellow */
+        .back-btn.dark-text {
+            color: #333;
+            border-color: rgba(0, 0, 0, 0.3);
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading .symbol {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            animation: pulse 2s ease-in-out infinite, glowColor 2s ease-in-out infinite;
+        }
+
+        .loading .cardinal {
+            font-size: 1.2rem;
+            letter-spacing: 0.4em;
+            opacity: 0.9;
+            margin-bottom: 0.3rem;
+            animation: pulse 2s ease-in-out infinite 0.3s;
+        }
+
+        .loading .text {
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            opacity: 0.5;
+            animation: pulse 2s ease-in-out infinite 0.6s;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.7;
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+        }
+
+        /* Dynamic glow color injected via JS */
+        @keyframes glowColor {
+
+            0%,
+            100% {
+                text-shadow: 0 0 10px var(--glow-color-low), 0 0 20px var(--glow-color-mid);
+            }
+
+            50% {
+                text-shadow: 0 0 20px var(--glow-color-hi), 0 0 40px var(--glow-color-mid), 0 0 60px var(--glow-color-low);
+            }
+        }
+
+        .a-enter-vr {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="loading" id="loading">
+        <div class="symbol" id="loadingSymbol"></div>
+        <div class="cardinal" id="loadingCardinal"></div>
+        <div class="text">AWAKENING GELORA</div>
+    </div>
+
+    <div class="top-bar" id="topBar"></div>
+
+    <a href="index.html" class="back-btn" id="backBtn">←</a>
+
+    <div class="bottom-bar" id="bottomBar"></div>
+
+    <div class="direction-label">
+        <div class="english" id="labelEnglish"></div>
+        <div class="korean-chinese" id="labelKoreanChinese"></div>
+        <div class="gelora-desc" id="labelDesc"></div>
+    </div>
+
+    <div id="videoContainer">
+        <video id="cameraVideo" autoplay playsinline></video>
+    </div>
+
+    <div id="canvas3d">
+        <a-scene embedded vr-mode-ui="enabled: false" renderer="alpha: true;">
+            <a-camera position="0 0 0"></a-camera>
+            <a-entity id="modelContainer"></a-entity>
+        </a-scene>
+    </div>
+
+    <script>
+        // ─── Config per direction ────────────────────────────────────────────
+        const DIRECTIONS = {
+            east: {
+                model: 'models/model8.glb',
+                color: '#008000',
+                colorRgb: '0, 128, 0',
+                bgFrom: '#004d00',
+                bgTo: '#001a00',
+                korean: '동',
+                chinese: '東',
+                english: 'East',
+                symbol: '동',
+                cardinal: 'EAST',
+                desc: 'Gelora 木. Born from the first light of dawn, this spirit carries the energy of spring and new beginnings.',
+            },
+            south: {
+                model: 'models/model3.glb',
+                color: '#FF0000',
+                colorRgb: '255, 0, 0',
+                bgFrom: '#990000',
+                bgTo: '#330000',
+                korean: '남',
+                chinese: '南',
+                english: 'South',
+                symbol: '남',
+                cardinal: 'SOUTH',
+                desc: 'Gelora 火. Blazing with the intensity of summer noon, this spirit embodies transformation and radiant power.',
+            },
+            center: {
+                model: 'models/model1.glb',
+                color: '#FFFF00',
+                colorRgb: '255, 255, 0',
+                bgFrom: '#999900',
+                bgTo: '#333300',
+                korean: '중',
+                chinese: '中',
+                english: 'Center',
+                symbol: '중',
+                cardinal: 'CENTER',
+                desc: 'Gelora 土. Dwelling at the sacred axis where all directions meet, this spirit holds the grounding force of earth.',
+                darkText: true,
+            },
+            west: {
+                model: 'models/model5.glb',
+                color: '#CCCCCC',
+                colorRgb: '200, 200, 200',
+                bgFrom: '#666666',
+                bgTo: '#1a1a1a',
+                korean: '서',
+                chinese: '西',
+                english: 'West',
+                symbol: '서',
+                cardinal: 'WEST',
+                desc: 'Gelora 金. Gleaming with autumn\'s fading light, this spirit carries the wisdom of release and harvest.',
+            },
+            north: {
+                model: 'models/model7.glb',
+                color: '#0000FF',
+                colorRgb: '0, 0, 255',
+                bgFrom: '#000099',
+                bgTo: '#000033',
+                korean: '북',
+                chinese: '北',
+                english: 'North',
+                symbol: '북',
+                cardinal: 'NORTH',
+                desc: 'Gelora 水. Emerging from winter\'s midnight depths, this spirit holds the stillness of potential and reflection.',
+            },
+        };
+
+        // ─── Read URL param ──────────────────────────────────────────────────
+        const params = new URLSearchParams(window.location.search);
+        const dirKey = (params.get('dir') || 'east').toLowerCase();
+        const cfg = DIRECTIONS[dirKey] || DIRECTIONS['east'];
+
+        // ─── Apply config to DOM ─────────────────────────────────────────────
+        document.title = `${cfg.korean} ${cfg.english} · Sacred Tree`;
+
+        // CSS custom properties for glow animation
+        const root = document.documentElement;
+        root.style.setProperty('--glow-color-low', `rgba(${cfg.colorRgb}, 0.2)`);
+        root.style.setProperty('--glow-color-mid', `rgba(${cfg.colorRgb}, 0.5)`);
+        root.style.setProperty('--glow-color-hi', `rgba(${cfg.colorRgb}, 0.8)`);
+
+        // Loading screen
+        document.getElementById('loading').style.background =
+            `linear-gradient(135deg, ${cfg.bgFrom} 0%, ${cfg.bgTo} 100%)`;
+        document.getElementById('loadingSymbol').textContent = cfg.symbol;
+        document.getElementById('loadingCardinal').textContent = cfg.cardinal;
+
+        // Color bars
+        const alpha = `rgba(${cfg.colorRgb}, 0.8)`;
+        const alphaZero = `rgba(${cfg.colorRgb}, 0)`;
+        document.getElementById('topBar').style.background =
+            `linear-gradient(180deg, ${alpha} 0%, ${alphaZero} 100%)`;
+        document.getElementById('bottomBar').style.background =
+            `linear-gradient(0deg, ${alpha} 0%, ${alphaZero} 100%)`;
+
+        // Back button
+        const backBtn = document.getElementById('backBtn');
+        backBtn.style.background = `rgba(${cfg.colorRgb}, 0.6)`;
+        if (cfg.darkText) backBtn.classList.add('dark-text');
+
+        // Direction label
+        document.getElementById('labelEnglish').textContent = cfg.english;
+        document.getElementById('labelKoreanChinese').textContent = `${cfg.korean} · ${cfg.chinese}`;
+        document.getElementById('labelDesc').textContent = cfg.desc;
+
+        // ─── Camera ──────────────────────────────────────────────────────────
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
+            .then(function (stream) {
+                const video = document.getElementById('cameraVideo');
+                video.srcObject = stream;
+                video.play();
+                setTimeout(() => createModel(), 300);
+            })
+            .catch(function (err) {
+                console.error('Camera error:', err);
+                createModel();
+            });
+
+        // ─── Model ───────────────────────────────────────────────────────────
+        function createModel() {
+            const container = document.getElementById('modelContainer');
+            const model = document.createElement('a-entity');
+
+            model.setAttribute('gltf-model', cfg.model);
+            model.setAttribute('position', '-0.5 -0.5 -5');
+            model.setAttribute('scale', '0.1 0.1 0.1');
+            model.setAttribute('visible', true);
+
+            container.appendChild(model);
+
+            model.addEventListener('model-loaded', () => {
+                document.getElementById('loading').classList.add('hidden');
+                setTimeout(() => startGrowthAnimation(model), 100);
+            });
+
+            // Fallback: hide loading after 5s regardless
+            setTimeout(() => {
+                document.getElementById('loading').classList.add('hidden');
+            }, 5000);
+        }
+
+        // ─── Animation ───────────────────────────────────────────────────────
+        function startGrowthAnimation(model) {
+            // Phase 1 — Emerge (0–3.6s)
+            model.setAttribute('animation__grow1', {
+                property: 'scale', from: '0.1 0.1 0.1', to: '0.45 0.45 0.45',
+                dur: 3000, easing: 'easeInOutQuad'
+            });
+            model.setAttribute('animation__rise1', {
+                property: 'position', from: '-0.5 -0.5 -5', to: '-0.3 -0.4 -2.5',
+                dur: 3600, easing: 'easeInOutQuad'
+            });
+            model.setAttribute('animation__rotate', {
+                property: 'rotation', to: '0 360 0',
+                dur: 36000, loop: true, easing: 'linear'
+            });
+
+            // Phase 2 — Approach (3–6s)
+            setTimeout(() => {
+                model.setAttribute('animation__grow2', {
+                    property: 'scale', from: '0.45 0.45 0.45', to: '0.8 0.8 0.8',
+                    dur: 3000, easing: 'easeInOutSine'
+                });
+                model.setAttribute('animation__rise2', {
+                    property: 'position', from: '-0.3 -0.4 -2.5', to: '-0.1 -0.5 -1.5',
+                    dur: 3000, easing: 'easeInOutSine'
+                });
+            }, 3000);
+
+            // Phase 3 — Full size (6.6–10.2s)
+            setTimeout(() => {
+                model.setAttribute('animation__grow3', {
+                    property: 'scale', from: '0.8 0.8 0.8', to: '1 1 1',
+                    dur: 2400, easing: 'easeOutSine'
+                });
+                model.setAttribute('animation__rise3', {
+                    property: 'position', from: '-0.1 -0.5 -1.5', to: '0 -0.5 -1.0',
+                    dur: 3600, easing: 'easeOutSine'
+                });
+            }, 6600);
+
+            // Phase 4 — Gentle float loop (10.8s+)
+            setTimeout(() => {
+                model.setAttribute('animation__floatZ', {
+                    property: 'position', from: '0 -0.5 -1.2', to: '0.1 -0.5 -0.6',
+                    dur: 3600, loop: true, dir: 'alternate', easing: 'easeInOutSine'
+                });
+                model.setAttribute('animation__floatY', {
+                    property: 'position', from: '0 -0.6 -0.9', to: '0 -0.4 -0.9',
+                    dur: 4200, loop: true, dir: 'alternate', easing: 'easeInOutSine'
+                });
+            }, 10800);
+        }
+    </script>
+</body>
+
+</html>
