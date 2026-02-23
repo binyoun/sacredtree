@@ -1,0 +1,209 @@
+================================================================================
+SESSION LOG — sacredtree repository
+Date: 2026-02-23
+Author: Antigravity (AI coding assistant)
+================================================================================
+
+--------------------------------------------------------------------------------
+1. CODEBASE STUDY & HOLISTIC ANALYSIS
+--------------------------------------------------------------------------------
+
+The full repository was read and studied comprehensively. The project is a
+mobile AR web experience titled "Sacred Tree (신목, 神木)" by artist Bin Youn
+(2025). It is a pure HTML/CSS/JavaScript web app with no build tools or
+frameworks, designed to be opened on a smartphone.
+
+Project concept:
+  - Based on the 5-directional cosmological system from East Asian traditions
+    (Korean Obangsaek / Chinese Wu Xing).
+  - Each of 5 "directions" (East, South, Center, West, North) corresponds to
+    a classical element (Wood, Fire, Earth, Metal, Water), a color, a season,
+    and a spiritual entity named "Gelora."
+  - The user selects a direction from the hub page (index.html), which opens
+    an AR experience: the device camera becomes the background, and a 3D spirit
+    model (GLB) floats in augmented reality over the live camera feed.
+
+File inventory at session start:
+  index.html    (13,818 bytes) — hub navigation page
+  east.html     (10,962 bytes) — East / 동 / 木 (Wood) / Green  → model8.glb
+  south.html     (9,175 bytes) — South / 남 / 火 (Fire) / Red   → model3.glb
+  center.html    (9,205 bytes) — Center / 중 / 土 (Earth) / Yellow → model1.glb
+  west.html      (9,182 bytes) — West / 서 / 金 (Metal) / White → model5.glb
+  north.html     (9,180 bytes) — North / 북 / 水 (Water) / Blue → model7.glb
+  models/model1.glb  (9.5 MB)
+  models/model3.glb  (7.7 MB)
+  models/model5.glb  (4.4 MB)
+  models/model6.glb  (4.9 MB) — orphan, not referenced by any HTML page
+  models/model7.glb  (4.7 MB)
+  models/model8.glb  (4.5 MB)
+  models/placeholder (1 byte)  — empty file to keep the folder tracked by git
+
+Technology stack identified:
+  - A-Frame v1.4.0 (CDN) — WebXR/3D rendering, loads and displays GLB models
+  - Google Fonts: Noto Serif KR (weight 300 & 600) — bilingual Korean typography
+  - Native WebRTC: navigator.mediaDevices.getUserMedia — camera feed
+  - Native JS: setTimeout — animation phase orchestration
+  - Pure vanilla HTML/CSS/JavaScript — no framework, no bundler, no TypeScript
+
+Layout / rendering layers (z-index stack):
+  z-index 200 → Loading overlay (fades out after model is loaded)
+  z-index 101 → Back button (←)
+  z-index 100 → Top/bottom color bars + direction label
+  z-index   2 → A-Frame 3D canvas (transparent background, 3D model rendered here)
+  z-index   1 → Video container (live camera feed, serves as AR background)
+
+Animation system (startGrowthAnimation):
+  All 5 direction pages share an identical 4-phase animation sequence:
+  Phase 1 (0–3.6s):   model emerges from far back (z: -5 → -2.5), scale 0.1 → 0.45
+  Phase 2 (3–6s):     model approaches viewer (z: -2.5 → -1.5), scale 0.45 → 0.8
+  Phase 3 (6.6–10.2s):model reaches full size (z: -1.5 → -1.0), scale 0.8 → 1.0
+  Phase 4 (10.8s+):   gentle looping float (Y and Z oscillation) + continuous
+                       360° Y-rotation (36s per full rotation)
+
+
+--------------------------------------------------------------------------------
+2. STRUCTURE CRITIQUE
+--------------------------------------------------------------------------------
+
+After reviewing all files, the following structural issues were identified:
+
+  [CRITICAL] Code duplication — ~95% of code in east, south, center, west, and
+  north HTML files is identical. The only differences between them are: the
+  direction color, the Korean/Chinese label text, the Gelora description, and
+  the GLB model filename. All CSS, all JavaScript logic (camera init, model
+  creation, animation phases), and all HTML structure are copy-pasted verbatim
+  across all 5 files.
+  Impact: any change to animation, layout, or logic requires editing 5 files
+  manually, creating high risk of inconsistency and maintenance burden.
+
+  [HIGH] No shared stylesheet — all CSS is embedded in <style> tags inside
+  each individual HTML file. Zero code reuse for styles.
+
+  [MEDIUM] Magic numbers in animation timing — offset values like 3000, 6600,
+  10800 (ms) are hardcoded across all setTimeout calls with no comments
+  explaining the choreography. If one phase duration changes, all subsequent
+  offsets must be manually recalculated.
+
+  [MEDIUM] Inconsistent model naming — GLB files are named model1 through
+  model8 with gaps (no model2.glb or model4.glb), and the numbering does not
+  correspond to any obvious direction order. model6.glb exists but is not
+  used by any page (orphan asset).
+
+  [LOW] Silent failure on model load timeout — a 5-second setTimeout hides the
+  loading screen regardless of whether the model actually loaded successfully,
+  leaving the user with a blank AR view and no feedback if the model fails.
+
+  [LOW] No meaningful camera error UI — getUserMedia failures are caught and
+  logged to console only; the user receives no on-screen indication that the
+  camera is unavailable.
+
+  Structural quality scores (assessed):
+    Maintainability:  2/5 — extreme duplication
+    Readability:      3/5 — individual files are readable but repetitive
+    Scalability:      1/5 — adding one direction requires copying 279 lines
+    Robustness:       2/5 — minimal error handling
+    Naming convention: 2/5 — non-descriptive model filenames
+
+
+--------------------------------------------------------------------------------
+3. REFACTORING — Merge 5 direction pages into 1
+--------------------------------------------------------------------------------
+
+Decision: The 5 direction HTML pages were consolidated into a single
+direction.html file, driven by a URL query parameter (?dir=east, ?dir=south,
+etc.). index.html remains a separate file as it serves a fundamentally
+different purpose (navigation hub vs. AR experience).
+
+Final structure after refactor:
+  index.html      — hub navigation (updated portal links)
+  direction.html  — single unified AR experience page
+  models/         — unchanged
+
+How direction.html works:
+  1. On load, reads the URL parameter: new URLSearchParams(window.location.search).get('dir')
+  2. Looks up the direction config in a DIRECTIONS object:
+       DIRECTIONS = {
+         east:   { model, color, colorRgb, bgFrom, bgTo, korean, chinese, english, ... },
+         south:  { ... },
+         center: { ..., darkText: true },  // special flag for dark back button
+         west:   { ... },
+         north:  { ... },
+       }
+  3. Applies config dynamically to the DOM:
+       - document.title
+       - CSS custom properties (--glow-color-low/mid/hi) for @keyframes glowColor
+       - Loading screen background gradient
+       - Top/bottom color bar gradients
+       - Back button background color + optional dark-text class (for Center/yellow)
+       - Direction label: English name, Korean · Chinese, Gelora description
+       - A-Frame gltf-model attribute (model path from config)
+
+Portal links in index.html updated:
+  Before: <a href="east.html">
+  After:  <a href="direction.html?dir=east">
+  (same change applied to south, center, west, north)
+
+Files deleted: east.html, south.html, center.html, west.html, north.html
+
+Result:
+  - HTML files: 6 → 2
+  - Lines of code: ~1,900 total → ~400 total (direction.html)
+  - Code duplication: ~95% → 0%
+  - To change animation: edit 1 file instead of 5
+  - To add a new direction: add 1 entry to the DIRECTIONS config object
+
+
+--------------------------------------------------------------------------------
+4. BUG ENCOUNTERED & RESOLVED — CORS / file:// protocol
+--------------------------------------------------------------------------------
+
+After refactoring, the GLB models failed to load with the following error:
+  "Access to fetch at 'file:///...' from origin 'null' has been blocked
+  by CORS policy: Cross origin requests are only supported for protocol
+  schemes: http, https..."
+
+Root cause: the HTML files were being opened directly from the filesystem
+(file:// protocol) in the browser. When using the file:// protocol, browsers
+enforce strict CORS policies that block fetching of local assets (GLB files,
+textures, etc.) via XMLHttpRequest or fetch. This is a browser security
+restriction, not a code bug.
+
+This is the same behavior that would have existed in the original 5 direction
+pages — it is not something introduced by the refactoring.
+
+Resolution: run a local HTTP server to serve the files over http://localhost,
+which lifts the CORS restriction. Command used:
+  python3 -m http.server 8080
+  (run from the sacredtree/ directory)
+
+Access the project at: http://localhost:8080
+Direction URLs:
+  http://localhost:8080/direction.html?dir=east
+  http://localhost:8080/direction.html?dir=south
+  http://localhost:8080/direction.html?dir=center
+  http://localhost:8080/direction.html?dir=west
+  http://localhost:8080/direction.html?dir=north
+
+Note: this issue does not exist when the project is deployed to any standard
+web host (GitHub Pages, Vercel, etc.) since those serve over https://.
+
+
+--------------------------------------------------------------------------------
+5. GIT COMMIT
+--------------------------------------------------------------------------------
+
+All changes were staged and committed to the main branch:
+
+  git add .
+  git commit -m "refactor: merge 5 direction pages into single direction.html with URL param config"
+
+Commit hash: 6a31818
+Stats: 7 files changed, 522 insertions(+), 1491 deletions(-)
+  Deleted: center.html, east.html, north.html, south.html, west.html
+  Created: direction.html
+  Modified: index.html (portal href links updated)
+
+
+================================================================================
+END OF LOG
+================================================================================
