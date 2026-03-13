@@ -238,3 +238,6 @@ User Experience & Autoplay Policies:
 NFC Elements:
   - The text mentioning 'NFC activation at each seated position' in index.html was kept completely intact.
 
+
+  - Spatial Audio: Initially tested Tone.Panner3D (HRTF) but reverted it back to Tone.AutoPanner (Stereo 2D) per user request for a cleaner, non-phased sweeping sound.
+
