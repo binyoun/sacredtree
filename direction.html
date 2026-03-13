@@ -6,6 +6,8 @@
     <title>Sacred Tree · Gelora</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <script src="audio.js"></script>
     <style>
         * {
             margin: 0;
@@ -206,7 +208,7 @@
 
     <div class="top-bar" id="topBar"></div>
 
-    <a href="index.html" class="back-btn" id="backBtn">←</a>
+    <a href="index.html?auto=1" class="back-btn" id="backBtn">←</a>
 
     <div class="bottom-bar" id="bottomBar"></div>
 
@@ -305,6 +307,62 @@
 
         // ─── Apply config to DOM ─────────────────────────────────────────────
         document.title = `${cfg.korean} ${cfg.english} · Sacred Tree`;
+
+        // Start Audio System
+        const audioOverlayId = 'sacred-audio-overlay';
+        if (!document.getElementById(audioOverlayId)) {
+            const overlay = document.createElement('div');
+            overlay.id = audioOverlayId;
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.zIndex = '150'; // Below AR loader text, above UI
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'flex-end';
+            overlay.style.justifyContent = 'center';
+            overlay.style.paddingBottom = '25vh';
+            overlay.style.pointerEvents = 'auto'; // Catch the first tap
+            overlay.style.background = 'transparent';
+            
+            const text = document.createElement('div');
+            text.style.color = 'rgba(255, 255, 255, 0.7)';
+            text.style.fontFamily = "'Helvetica Neue', Arial, sans-serif";
+            text.style.fontSize = '0.75rem';
+            text.style.letterSpacing = '0.4em';
+            text.style.animation = 'pulse 2.5s ease-in-out infinite';
+            text.style.textShadow = '0 0 10px rgba(0,0,0,0.8)';
+            text.style.textTransform = 'uppercase';
+            text.innerHTML = 'Tap Anywhere for Sound';
+            
+            overlay.appendChild(text);
+            document.body.appendChild(overlay);
+
+            const startAudio = async () => {
+                overlay.removeEventListener('click', startAudio);
+                overlay.removeEventListener('touchstart', startAudio);
+                
+                overlay.style.transition = 'opacity 0.8s ease';
+                overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
+                
+                if (typeof SacredAudio !== 'undefined') {
+                    SacredAudio.init(dirKey);
+                }
+
+                setTimeout(() => {
+                    if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+                }, 1000);
+            };
+
+            if (params.get('auto') === '1') {
+                startAudio();
+            } else {
+                overlay.addEventListener('click', startAudio);
+                overlay.addEventListener('touchstart', startAudio, {passive: true});
+            }
+        }
 
         // CSS custom properties for glow animation
         const root = document.documentElement;

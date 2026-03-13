@@ -207,3 +207,34 @@ Stats: 7 files changed, 522 insertions(+), 1491 deletions(-)
 ================================================================================
 END OF LOG
 ================================================================================
+
+--------------------------------------------------------------------------------
+6. ADDING GENERATIVE MUSIC USING TONE.JS
+--------------------------------------------------------------------------------
+
+A procedural ambient music system was added using Tone.js mapping to the
+5-directional cosmological system (Wu Xing).
+
+Files modified/added:
+  - audio.js       (NEW) — Core engine for generative audio
+  - index.html     (MODIFIED) — Added Tone.js, audio.js script, and '?auto=1' portal links
+  - direction.html (MODIFIED) — Added Tone.js, audio.js script, and '?auto=1' back button
+
+Architecture & Sound Design:
+  - Landing Page (index.html):
+    - Tone.FMSynth with PingPongDelay (long feedback & wet) and massive Reverb.
+    - Simulates the sound of distant temple bells / wind chimes.
+    - Hit irregularly every 4 to 12 seconds picking random notes from a high pentatonic scale.
+  - Direction Pages (direction.html):
+    - Tone.PolySynth (Drone) + Tone.PolySynth (Generative Melody).
+    - Effects: Massive Reverb, Chorus, and an LFO-modulated Lowpass Filter to create a swelling/breathing effect.
+    - Each direction uses different pentatonic scales (e.g., Minor Pentatonic at A1/E2 for North, bright high scales for South), oscillators (sine, triangle, square), and LFO speeds.
+
+User Experience & Autoplay Policies:
+  - Resolving 'AudioContext was not allowed to start': implemented an interactive full-screen transculent overlay prompting 'Tap anywhere to awaken the space'.
+  - User starts audio on the very first tap globally.
+  - Fast page navigation bypass implemented via URL parameter ?auto=1. When auto is set to true, the overlay is bypassed completely and the synth is directly initialized.
+  
+NFC Elements:
+  - The text mentioning 'NFC activation at each seated position' in index.html was kept completely intact.
+

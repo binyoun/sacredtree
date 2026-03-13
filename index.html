@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <script src="audio.js"></script>
     <style>
         * {
             margin: 0;
@@ -446,31 +448,31 @@
         <div class="sacred-tree"></div>
 
         <!-- 5 Direction Portals - Half Circle: East → South → Center → West → North -->
-        <a href="direction.html?dir=east" class="portal east">
+        <a href="direction.html?dir=east&auto=1" class="portal east">
             <span class="portal-english">EAST</span>
             <span class="portal-korean">동</span>
             <span class="portal-chinese">木</span>
         </a>
 
-        <a href="direction.html?dir=south" class="portal south">
+        <a href="direction.html?dir=south&auto=1" class="portal south">
             <span class="portal-english">SOUTH</span>
             <span class="portal-korean">남</span>
             <span class="portal-chinese">火</span>
         </a>
 
-        <a href="direction.html?dir=center" class="portal center">
+        <a href="direction.html?dir=center&auto=1" class="portal center">
             <span class="portal-english">CENTER</span>
             <span class="portal-korean">중</span>
             <span class="portal-chinese">土</span>
         </a>
 
-        <a href="direction.html?dir=west" class="portal west">
+        <a href="direction.html?dir=west&auto=1" class="portal west">
             <span class="portal-english">WEST</span>
             <span class="portal-korean">서</span>
             <span class="portal-chinese">金</span>
         </a>
 
-        <a href="direction.html?dir=north" class="portal north">
+        <a href="direction.html?dir=north&auto=1" class="portal north">
             <span class="portal-english">NORTH</span>
             <span class="portal-korean">북</span>
             <span class="portal-chinese">水</span>
@@ -483,6 +485,45 @@
         <p>신목 · 神木</p>
         <p class="credit">Bin Youn, 2025</p>
     </div>
+
+    <!-- Audio Interaction Overlay -->
+    <div id="intro-overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: opacity 1.5s ease;">
+        <div style="font-size: 1.2rem; letter-spacing: 0.2em; color: #fff; margin-bottom: 1rem; animation: textGlow 2s infinite;">ENTER THE SACRED TREE</div>
+        <div style="font-size: 0.8rem; color: rgba(255,255,255,0.6); letter-spacing: 0.1em;">Tap anywhere to awaken the space</div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const overlay = document.getElementById('intro-overlay');
+            const params = new URLSearchParams(window.location.search);
+            const autoStart = params.get('auto') === '1';
+            
+            const startExperience = () => {
+                overlay.removeEventListener('click', startExperience);
+                overlay.removeEventListener('touchstart', startExperience);
+                
+                // Initialize Tone.js Master Audio for the hub using the 'landing' config
+                if (typeof SacredAudio !== 'undefined') {
+                    SacredAudio.init('landing'); 
+                }
+
+                overlay.style.opacity = '0';
+                overlay.style.pointerEvents = 'none';
+                
+                setTimeout(() => {
+                    if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+                }, 1500);
+            };
+
+            if (autoStart) {
+                // Browser context is likely already resumed from previous page, try auto-starting
+                startExperience();
+            } else {
+                overlay.addEventListener('click', startExperience);
+                overlay.addEventListener('touchstart', startExperience, {passive: true});
+            }
+        });
+    </script>
 </body>
 
 </html>
