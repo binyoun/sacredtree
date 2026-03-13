@@ -88,6 +88,12 @@ const SacredAudio = (function() {
                 wet: 0.6       // Ditingkatkan dari 0.4 agar efek echo lebih dominan
             }).connect(reverb);
             
+            // Panner stereo (2D biasa) bergerak lambat ke kiri dan kanan
+            const panner = new Tone.AutoPanner({
+                frequency: 0.1, 
+                depth: 1        
+            }).connect(delay).start();
+
             Tone.Transport.bpm.value = 60; // Set base tempo for delay
 
             // FM Synth designed to sound like a struck temple bell / chime
@@ -109,7 +115,7 @@ const SacredAudio = (function() {
                     release: 0.1
                 },
                 volume: -20
-            }).connect(delay);
+            }).connect(panner);
 
             await Tone.loaded();
             playLandingGenerativeBells();
