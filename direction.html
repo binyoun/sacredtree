@@ -356,7 +356,10 @@
                 }, 1000);
             };
 
-            if (params.get('auto') === '1') {
+            // Ignore autoStart flag based on user request to force tap on every page
+            const autoStart = false; // params.get('auto') === '1';
+
+            if (autoStart) {
                 startAudio();
             } else {
                 overlay.addEventListener('click', startAudio);

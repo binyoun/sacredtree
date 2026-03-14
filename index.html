@@ -496,7 +496,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             const overlay = document.getElementById('intro-overlay');
             const params = new URLSearchParams(window.location.search);
-            const autoStart = params.get('auto') === '1';
+            // Ignore autoStart flag based on user request to force tap on every page
+            const autoStart = false; // params.get('auto') === '1';
             
             const startExperience = () => {
                 overlay.removeEventListener('click', startExperience);

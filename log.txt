@@ -241,3 +241,23 @@ NFC Elements:
 
   - Spatial Audio: Initially tested Tone.Panner3D (HRTF) but reverted it back to Tone.AutoPanner (Stereo 2D) per user request for a cleaner, non-phased sweeping sound.
 
+
+--------------------------------------------------------------------------------
+7. iOS AUTOPLAY FIX & AUDIO ACTIVATION OVERLAYS
+--------------------------------------------------------------------------------
+
+Issue: Audio was not playing on iOS devices during navigation because browsers
+enforce strict autoplay policies. AudioContext initialization requires a direct
+user interaction (like a tap or click) on the very first page load.
+
+Resolution: Re-implemented the fullscreen "Tap to awaken" overlay in both
+index.html and direction.html, effectively forcing the user to tap to activate
+the audio.
+
+Changes made:
+  - index.html: Restored the fullscreen translucent `#intro-overlay`.
+  - direction.html: Restored the `#sacred-audio-overlay` at the bottom of the AR view.
+  - Disabled the `?auto=1` URL parameter bypass logic. Now, even if the URL 
+    contains `&auto=1`, the page ignores it and forces the user to tap the
+    overlay on EVERY new page load to ensure Tone.js audio can start properly
+    without being blocked by the browser.
