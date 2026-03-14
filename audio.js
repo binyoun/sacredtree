@@ -67,7 +67,14 @@ const SacredAudio = (function() {
     async function initTone() {
         if (initialized) return;
         
-        await Tone.start();
+        // Ensure Tone.start is awaited inside the user gesture
+        try {
+            await Tone.start();
+            console.log("AudioContext started successfully");
+        } catch (e) {
+            console.error("AudioContext failed to start", e);
+            return;
+        }
         initialized = true;
 
         // --- MASTER EFFECTS ---
@@ -241,6 +248,11 @@ const SacredAudio = (function() {
         // Direct init call for HTML custom overlays
         init: async function(mode) {
             currentMode = mode || 'center';
+            // CRITICAL FOR IOS: Tone.start() must happen synchronously 
+            // inside the click handler before any awaits.
+            if (Tone.context.state !== 'running') {
+                Tone.start();
+            }
             try {
                 await initTone();
             } catch (err) {
