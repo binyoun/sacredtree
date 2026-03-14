@@ -65,17 +65,27 @@ const SacredAudio = (function() {
     };
 
     async function initTone() {
-        if (initialized) return;
+        if (initialized) {
+            // Clean up old instances to prevent overlapping audio glitches on navigation
+            Tone.Transport.stop();
+            if (bellSynth) bellSynth.dispose();
+            if (droneSynth) droneSynth.dispose();
+            if (melodySynth) melodySynth.dispose();
+            if (lfo) lfo.dispose();
+            if (filter) filter.dispose();
+            if (chorus) chorus.dispose();
+            if (delay) delay.dispose();
+            if (reverb) reverb.dispose();
+            if (nextMelodyTimeout) clearTimeout(nextMelodyTimeout);
+        }
         
-        // Ensure Tone.start is awaited inside the user gesture
+        // Ensure Tone.start is awaited properly 
         try {
             await Tone.start();
-            console.log("AudioContext started successfully");
         } catch (e) {
             console.error("AudioContext failed to start", e);
             return;
         }
-        initialized = true;
 
         // --- MASTER EFFECTS ---
         // Massive Reverb for spiritual space (used in both modes)
@@ -125,7 +135,10 @@ const SacredAudio = (function() {
             }).connect(panner);
 
             await Tone.loaded();
-            playLandingGenerativeBells();
+            Tone.Transport.start();
+            // Immediate first bell strike to provide instant feedback upon tap
+            playLandingGenerativeBells(true);
+            initialized = true;
 
         } else {
             // --- DIRECTION PAGE AUDIO ROUTING (AMBIENT DRONE) ---
@@ -183,12 +196,14 @@ const SacredAudio = (function() {
             }
 
             await Tone.loaded();
+            Tone.Transport.start();
             playDirectionGenerativeMusic(dirConfig);
+            initialized = true;
         }
     }
 
     // --- LANDING PAGE GENERATIVE LOGIC ---
-    function playLandingGenerativeBells() {
+    function playLandingGenerativeBells(isInitial = false) {
         if (Tone.context.state !== 'running') return;
         
         const scale = config.landing.scale;
@@ -197,18 +212,18 @@ const SacredAudio = (function() {
         const randomNote = scale[Math.floor(Math.random() * scale.length)];
         
         // Hit the bell hard, let it ring
-        bellSynth.triggerAttackRelease(randomNote, 0.1);
+        if (bellSynth) bellSynth.triggerAttackRelease(randomNote, 0.1);
 
         // Schedule next bell strike very unpredictably (between 4 to 12 seconds)
         // Leaving lots of empty space/silence
-        const nextTime = Math.random() * 8000 + 4000;
-        nextMelodyTimeout = setTimeout(playLandingGenerativeBells, nextTime);
+        const nextTime = isInitial ? 500 : (Math.random() * 8000 + 4000);
+        nextMelodyTimeout = setTimeout(() => playLandingGenerativeBells(false), nextTime);
     }
 
     // --- DIRECTION PAGE GENERATIVE LOGIC ---
     function playDirectionGenerativeMusic(dirConfig) {
         // Trigger the infinite drone
-        droneSynth.triggerAttack(dirConfig.drone);
+        if (droneSynth) droneSynth.triggerAttack(dirConfig.drone);
 
         function playRandomMelody() {
             if (Tone.context.state !== 'running') return;
@@ -223,13 +238,13 @@ const SacredAudio = (function() {
             }
 
             const duration = Math.random() * 4 + 2; 
-            melodySynth.triggerAttackRelease(notesToPlay, duration);
+            if (melodySynth) melodySynth.triggerAttackRelease(notesToPlay, duration);
 
             const nextTime = Math.random() * 9000 + 6000;
             nextMelodyTimeout = setTimeout(playRandomMelody, nextTime);
         }
 
-        setTimeout(playRandomMelody, 6000);
+        nextMelodyTimeout = setTimeout(playRandomMelody, 3000); // reduced from 6000 for faster audio feedback
     }
 
     return {

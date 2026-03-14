@@ -281,3 +281,24 @@ very top of the `init` function, before any asynchronous `await` calls.
 Changes made:
   - audio.js: Added `if (Tone.context.state !== 'running') { Tone.start(); }` 
     to the beginning of `SacredAudio.init` before `try { await initTone(); }`.
+
+--------------------------------------------------------------------------------
+9. AUDIO GLITCH FIX & LANDING PAGE SILENCE
+--------------------------------------------------------------------------------
+
+Issue 1: When navigating between index.html and direction.html, audio would pop,
+distort, and glitch heavily.
+Root cause 1: Tone.js context was not destroying/disposing of earlier synth and
+effect nodes. Overlapping initializations caused duplicate DSP nodes to process
+audio on top of each other, clipping the AudioContext.
+Fix 1: Added a cleanup block to the top of `initTone()` in `audio.js` that stops
+`Tone.Transport` and calls `.dispose()` on all synths, LFOs, and effects when
+re-initializing.
+
+Issue 2: The landing page (index.html) was totally silent upon tapping the screen.
+Root cause 2: The generative function randomly selected a time between 4 and 12
+seconds before striking the first bell. This gave the illusion that the audio
+activation had failed.
+Fix 2: Parameterized `playLandingGenerativeBells(isInitial)` so the very first
+strike happens almost immediately (500ms), giving instant auditory feedback
+that the audio context is active, before fading back into the 4-12s random interval.
