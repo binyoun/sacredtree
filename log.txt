@@ -261,3 +261,23 @@ Changes made:
     contains `&auto=1`, the page ignores it and forces the user to tap the
     overlay on EVERY new page load to ensure Tone.js audio can start properly
     without being blocked by the browser.
+
+--------------------------------------------------------------------------------
+8. iOS AUTOPLAY FIX #2: SYNCHRONOUS Tone.start()
+--------------------------------------------------------------------------------
+
+Issue: Even after forcing user interaction via overlays, iOS (Chrome & Safari)
+still blocked Tone.js audio.
+
+Root cause: iOS Web Audio policies require the AudioContext to be resumed/started
+*synchronously* inside the direct user-interaction event handler (e.g., click/touch).
+Our previous implementation called `SacredAudio.init()` which was an `async` function. 
+By the time the `await` resolved and `Tone.start()` was called, the browser 
+considered the user gesture "stale" and blocked the audio.
+
+Resolution: Modified `audio.js` to call `Tone.start()` *synchronously* at the 
+very top of the `init` function, before any asynchronous `await` calls.
+
+Changes made:
+  - audio.js: Added `if (Tone.context.state !== 'running') { Tone.start(); }` 
+    to the beginning of `SacredAudio.init` before `try { await initTone(); }`.
