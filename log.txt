@@ -302,3 +302,87 @@ activation had failed.
 Fix 2: Parameterized `playLandingGenerativeBells(isInitial)` so the very first
 strike happens almost immediately (500ms), giving instant auditory feedback
 that the audio context is active, before fading back into the 4-12s random interval.
+
+--------------------------------------------------------------------------------
+10. [SOLVED] AUDIO POP/GLITCH ON BACK NAVIGATION (ALL DIRECTIONS)
+--------------------------------------------------------------------------------
+Date: 2026-03-15
+
+Issue: When tapping the back button (←) on ANY direction page (East, South,
+Center, West, North) to return to the landing page, users heard a loud pop/
+click/distortion sound. This occurred on both desktop and iPhone (Safari & Chrome).
+
+Root cause (identified via 3 parallel research agents — code review, Tone.js
+documentation, and mobile web audio best practices):
+  1. The cleanup() function called .dispose() on all synth and effect nodes
+     IMMEDIATELY with no fade-out. Disposing a node while it is still producing
+     a non-zero signal creates a single-sample discontinuity → audible pop/click.
+  2. The drone synth used triggerAttack() (infinite sustain) and was never
+     released before dispose — guaranteed pop on any active drone.
+  3. Navigation (window.location.href) happened INSTANTLY after calling stop(),
+     before any audio fade-out could complete.
+  4. The `beforeunload` event used as safety net is unreliable on iOS Safari.
+
+Resolution — 4 changes across 3 files:
+
+  audio.js:
+    - Added gracefulStop() function that:
+      (a) Calls releaseAll() on drone/melody synths and triggerRelease() on bell
+      (b) Ramps Tone.Destination.volume to -Infinity over 150ms
+      (c) Only disposes nodes AFTER the fade completes (setTimeout 200ms)
+      (d) Restores Tone.Destination.volume to 0 after dispose for next page
+    - Added disposeAll() for immediate teardown (used on re-init, not navigation)
+    - SacredAudio.stop() now returns a Promise (resolves after fade + dispose)
+    - Replaced `beforeunload` with `pagehide` (more reliable on iOS Safari)
+
+  index.html:
+    - All 5 portal links (.portal) now intercept click, call SacredAudio.stop(),
+      and navigate only AFTER the Promise resolves:
+        SacredAudio.stop().then(() => { window.location.href = dest; });
+
+  direction.html:
+    - Back button (#backBtn) uses same pattern — stop().then() before navigating.
+      This single handler covers ALL 5 directions since they share direction.html.
+
+Verified: Pop/glitch is completely eliminated on iPhone (Safari & Chrome) and
+desktop browsers across all 5 directions.
+
+--------------------------------------------------------------------------------
+11. [UNSOLVED] LANDING PAGE BELL AUDIO SILENT ON iPHONE
+--------------------------------------------------------------------------------
+Date: 2026-03-15
+
+Issue: The landing page (index.html) FM bell/chime sound does not play on
+iPhone Safari or Chrome after tapping the "ENTER THE SACRED TREE" overlay.
+Audio works fine on desktop browsers but is completely silent on iOS.
+
+Investigation performed:
+  Research agents identified multiple potential causes:
+    1. Tone.Reverb({ decay: 20 }) generates a 20-second impulse response offline.
+       On iOS with limited CPU, this blocks `await Tone.loaded()` for too long,
+       preventing the bell from ever being scheduled.
+    2. PolySynth(FMSynth) is too CPU-heavy for iOS Safari (dual oscillators +
+       modulation per voice). Known Tone.js issue #637.
+    3. The guard `if (Tone.context.state !== 'running') return` in
+       playLandingGenerativeBells() could kill the entire recursive setTimeout
+       scheduling chain if context wasn't running on the first call.
+    4. PingPongDelay with delayTime: "4n" depends on Tone.Transport timing,
+       which may not be ready on iOS.
+    5. Duplicate `await Tone.start()` inside initTone() (already called
+       synchronously in init()) could confuse iOS AudioContext state.
+
+Fixes attempted (partially applied, issue persists):
+  - Changed PolySynth(FMSynth) → single FMSynth (lighter on iOS)
+  - Reduced landing reverb decay from 20s to 1.5s (faster IR generation)
+  - Changed PingPongDelay delayTime from "4n" to 0.5s (absolute, no Transport)
+  - Removed duplicate await Tone.start() from initTone()
+  - Fixed scheduling guard to always schedule next bell even if context not running
+  - Simplified effect chain: FMSynth → Reverb (removed AutoPanner & PingPongDelay)
+  - Play first bell BEFORE await Tone.loaded() (non-blocking reverb load)
+  - Added console.log debug points for remote Safari debugging
+
+Status: Bell still silent on iPhone. Further investigation needed. Possible
+remaining causes: iOS hardware mute switch, AudioContext not actually reaching
+'running' state despite Tone.start(), or FMSynth itself not compatible with
+iOS Safari's Web Audio implementation. Consider testing with a basic Tone.Synth
+instead of FMSynth, or using the @tonejs/unmute library to bypass iOS silent mode.

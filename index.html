@@ -517,12 +517,24 @@
             };
 
             if (autoStart) {
-                // Browser context is likely already resumed from previous page, try auto-starting
                 startExperience();
             } else {
                 overlay.addEventListener('click', startExperience);
                 overlay.addEventListener('touchstart', startExperience, {passive: true});
             }
+
+            // Stop audio cleanly before navigating to any direction page
+            document.querySelectorAll('.portal').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const dest = link.href;
+                    if (typeof SacredAudio !== 'undefined') {
+                        SacredAudio.stop().then(() => { window.location.href = dest; });
+                    } else {
+                        window.location.href = dest;
+                    }
+                });
+            });
         });
     </script>
 </body>

@@ -1,24 +1,22 @@
 // audio.js - Generative Ambient Music for Sacred Tree using Tone.js
 
-// audio.js - Generative Ambient Music for Sacred Tree using Tone.js
-
 const SacredAudio = (function() {
     let initialized = false;
-    let currentMode = 'center'; // 'landing' or direction ('east', 'south', etc)
+    let currentMode = 'center';
 
-    let reverb, chorus, filter, lfo, delay;
-    
+    let reverb, chorus, filter, lfo, delay, panner;
+
     // Synths for Direction pages
     let droneSynth, melodySynth;
-    // Synths for Landing page
+    // Synth for Landing page (single FMSynth — lighter on iOS than PolySynth)
     let bellSynth;
-    
+
     let nextMelodyTimeout;
-    
+
     // Musical parameters per direction (Wu Xing cosmology)
     const config = {
         east: {   // Wood - Spring, Morning, Green
-            scale: ['C4', 'D4', 'E4', 'G4', 'A4', 'C5', 'D5'], 
+            scale: ['C4', 'D4', 'E4', 'G4', 'A4', 'C5', 'D5'],
             drone: ['C3', 'G3'],
             lfoFreq: 0.05,
             filterBase: 1000,
@@ -26,7 +24,7 @@ const SacredAudio = (function() {
             droneOsc: 'sine'
         },
         south: {  // Fire - Summer, Noon, Red
-            scale: ['G4', 'A4', 'B4', 'D5', 'E5', 'G5', 'A5'], 
+            scale: ['G4', 'A4', 'B4', 'D5', 'E5', 'G5', 'A5'],
             drone: ['G3', 'D4'],
             lfoFreq: 0.08,
             filterBase: 1500,
@@ -34,7 +32,7 @@ const SacredAudio = (function() {
             droneOsc: 'triangle'
         },
         center: { // Earth - Axis, Yellow
-            scale: ['F3', 'G3', 'A3', 'C4', 'D4', 'F4', 'G4'], 
+            scale: ['F3', 'G3', 'A3', 'C4', 'D4', 'F4', 'G4'],
             drone: ['F2', 'C3'],
             lfoFreq: 0.04,
             filterBase: 800,
@@ -42,7 +40,7 @@ const SacredAudio = (function() {
             droneOsc: 'sine'
         },
         west: {   // Metal - Autumn, Evening, White
-            scale: ['D4', 'F4', 'G4', 'A4', 'C5', 'D5', 'F5'], 
+            scale: ['D4', 'F4', 'G4', 'A4', 'C5', 'D5', 'F5'],
             drone: ['D3', 'A3'],
             lfoFreq: 0.05,
             filterBase: 1200,
@@ -50,79 +48,51 @@ const SacredAudio = (function() {
             droneOsc: 'sine'
         },
         north: {  // Water - Winter, Midnight, Blue
-            scale: ['A2', 'C3', 'D3', 'E3', 'G3', 'A3', 'C4'], 
+            scale: ['A2', 'C3', 'D3', 'E3', 'G3', 'A3', 'C4'],
             drone: ['A1', 'E2'],
             lfoFreq: 0.03,
             filterBase: 600,
             melodyOsc: 'sine',
             droneOsc: 'sine'
         },
-        // --- LANDING PAGE CONFIG ---
-        landing: { 
-            // Temple bells / wind chimes (Pentatonic High)
+        landing: {
             scale: ['C5', 'D5', 'F5', 'G5', 'A5', 'C6', 'D6']
         }
     };
 
     async function initTone() {
         if (initialized) {
-            // Clean up old instances to prevent overlapping audio glitches on navigation
-            Tone.Transport.stop();
-            if (bellSynth) bellSynth.dispose();
-            if (droneSynth) droneSynth.dispose();
-            if (melodySynth) melodySynth.dispose();
-            if (lfo) lfo.dispose();
-            if (filter) filter.dispose();
-            if (chorus) chorus.dispose();
-            if (delay) delay.dispose();
-            if (reverb) reverb.dispose();
-            if (nextMelodyTimeout) clearTimeout(nextMelodyTimeout);
-        }
-        
-        // Ensure Tone.start is awaited properly 
-        try {
-            await Tone.start();
-        } catch (e) {
-            console.error("AudioContext failed to start", e);
-            return;
+            // Clean up old instances immediately (no fade needed here since
+            // this path is only hit on re-init, not on navigation)
+            disposeAll();
         }
 
+        // NOTE: Tone.start() is already called synchronously in init() before
+        // this async function. Do NOT call await Tone.start() again here —
+        // on iOS the duplicate call can confuse the AudioContext state.
+
         // --- MASTER EFFECTS ---
-        // Massive Reverb for spiritual space (used in both modes)
+        const reverbDecay = (currentMode === 'landing') ? 1.5 : 20;
         reverb = new Tone.Reverb({
-            decay: 20, 
+            decay: reverbDecay,
             preDelay: 0.1,
             wet: 0.75
         }).toDestination();
 
         if (currentMode === 'landing') {
             // --- LANDING PAGE AUDIO ROUTING (FM BELLS) ---
-            
-            // PingPongDelay for bells echoing in a vast valley
-            delay = new Tone.PingPongDelay({
-                delayTime: "4n",
-                feedback: 0.7, // Ditingkatkan dari 0.5 agar pantulan lebih banyak
-                wet: 0.6       // Ditingkatkan dari 0.4 agar efek echo lebih dominan
-            }).connect(reverb);
-            
-            // Panner stereo (2D biasa) bergerak lambat ke kiri dan kanan
-            const panner = new Tone.AutoPanner({
-                frequency: 0.1, 
-                depth: 1        
-            }).connect(delay).start();
+            console.log('[SacredAudio] Landing init, context state:', Tone.context.state);
 
-            Tone.Transport.bpm.value = 60; // Set base tempo for delay
-
-            // FM Synth designed to sound like a struck temple bell / chime
-            bellSynth = new Tone.PolySynth(Tone.FMSynth, {
+            // Simple bell synth connected straight to reverb (skip heavy effects for iOS)
+            bellSynth = new Tone.FMSynth({
                 harmonicity: 3.01,
                 modulationIndex: 10,
                 oscillator: { type: "sine" },
                 envelope: {
-                    attack: 0.01, // Quick percussive strike
+                    attack: 0.01,
                     decay: 2,
                     sustain: 0.1,
-                    release: 8    // Very long ringing tail
+                    release: 4
                 },
                 modulation: { type: "square" },
                 modulationEnvelope: {
@@ -131,55 +101,66 @@ const SacredAudio = (function() {
                     sustain: 0,
                     release: 0.1
                 },
-                volume: -20
-            }).connect(panner);
+                volume: -16
+            }).connect(reverb);
 
-            await Tone.loaded();
-            Tone.Transport.start();
-            // Immediate first bell strike to provide instant feedback upon tap
+            console.log('[SacredAudio] Bell synth created, playing first bell immediately');
+
+            // Play first bell IMMEDIATELY — don't wait for Tone.loaded()
+            // This ensures iOS hears something right away within the user gesture window
+            try {
+                bellSynth.triggerAttackRelease('C5', 0.1);
+                console.log('[SacredAudio] First bell triggered');
+            } catch(e) {
+                console.error('[SacredAudio] First bell failed:', e);
+            }
+
+            // Start generative bells (scheduling continues regardless)
             playLandingGenerativeBells(true);
             initialized = true;
+
+            // Load reverb IR in background (non-blocking)
+            Tone.loaded().then(() => {
+                console.log('[SacredAudio] Tone.loaded() resolved');
+            }).catch(e => {
+                console.error('[SacredAudio] Tone.loaded() failed:', e);
+            });
 
         } else {
             // --- DIRECTION PAGE AUDIO ROUTING (AMBIENT DRONE) ---
             const dirConfig = config[currentMode] || config['center'];
 
-            // Chorus for widening
             chorus = new Tone.Chorus({
-                frequency: 0.5, 
+                frequency: 0.5,
                 delayTime: 3.5,
                 depth: 0.8,
                 wet: 0.6
             }).connect(reverb);
 
-            // Lowpass Filter for breath-like swell motion
             filter = new Tone.Filter({
                 type: 'lowpass',
                 frequency: dirConfig.filterBase,
                 rolloff: -24
             }).connect(chorus);
 
-            // LFO modulating the filter frequency automatically
             lfo = new Tone.LFO({
-                frequency: dirConfig.lfoFreq, 
+                frequency: dirConfig.lfoFreq,
                 min: dirConfig.filterBase * 0.5,
                 max: dirConfig.filterBase * 1.5
             }).connect(filter.frequency);
             lfo.start();
 
-            // Drone Synth: Plays constant deep intervals
             droneSynth = new Tone.PolySynth(Tone.Synth, {
                 oscillator: { type: dirConfig.droneOsc },
                 envelope: {
-                    attack: 10,   // very slow fade in
+                    attack: 10,
                     decay: 2,
                     sustain: 1,
-                    release: 20   // slow fade out
+                    release: 20
                 },
                 volume: -24
             }).connect(filter);
 
-            // Melody Synth: Plays generative pentatonic notes
             melodySynth = new Tone.PolySynth(Tone.Synth, {
                 oscillator: { type: dirConfig.melodyOsc },
                 envelope: {
@@ -196,38 +177,31 @@ const SacredAudio = (function() {
             }
 
             await Tone.loaded();
-            Tone.Transport.start();
             playDirectionGenerativeMusic(dirConfig);
             initialized = true;
         }
     }
 
     // --- LANDING PAGE GENERATIVE LOGIC ---
-    function playLandingGenerativeBells(isInitial = false) {
-        if (Tone.context.state !== 'running') return;
-        
+    function playLandingGenerativeBells(isInitial) {
         const scale = config.landing.scale;
-        
-        // Pick a random high bell note
         const randomNote = scale[Math.floor(Math.random() * scale.length)];
-        
-        // Hit the bell hard, let it ring
-        if (bellSynth) bellSynth.triggerAttackRelease(randomNote, 0.1);
 
-        // Schedule next bell strike very unpredictably (between 4 to 12 seconds)
-        // Leaving lots of empty space/silence
+        // Only play if context is running, but ALWAYS schedule next bell
+        // (prevents the scheduling chain from dying on iOS)
+        if (Tone.context.state === 'running' && bellSynth) {
+            bellSynth.triggerAttackRelease(randomNote, 0.1);
+        }
+
         const nextTime = isInitial ? 500 : (Math.random() * 8000 + 4000);
         nextMelodyTimeout = setTimeout(() => playLandingGenerativeBells(false), nextTime);
     }
 
     // --- DIRECTION PAGE GENERATIVE LOGIC ---
     function playDirectionGenerativeMusic(dirConfig) {
-        // Trigger the infinite drone
         if (droneSynth) droneSynth.triggerAttack(dirConfig.drone);
 
         function playRandomMelody() {
-            if (Tone.context.state !== 'running') return;
-            
             const numNotes = Math.random() > 0.6 ? 2 : 1;
             const notesToPlay = [];
             for (let i = 0; i < numNotes; i++) {
@@ -237,33 +211,80 @@ const SacredAudio = (function() {
                 }
             }
 
-            const duration = Math.random() * 4 + 2; 
-            if (melodySynth) melodySynth.triggerAttackRelease(notesToPlay, duration);
+            const duration = Math.random() * 4 + 2;
+            // Only play if context is running, but ALWAYS schedule next
+            if (Tone.context.state === 'running' && melodySynth) {
+                melodySynth.triggerAttackRelease(notesToPlay, duration);
+            }
 
             const nextTime = Math.random() * 9000 + 6000;
             nextMelodyTimeout = setTimeout(playRandomMelody, nextTime);
         }
 
-        nextMelodyTimeout = setTimeout(playRandomMelody, 3000); // reduced from 6000 for faster audio feedback
+        nextMelodyTimeout = setTimeout(playRandomMelody, 3000);
     }
+
+    // Immediately dispose all nodes (no fade — used for re-init path)
+    function disposeAll() {
+        if (nextMelodyTimeout) { clearTimeout(nextMelodyTimeout); nextMelodyTimeout = null; }
+        try { Tone.Transport.stop(); } catch(e) {}
+        // Release held notes before disposing
+        if (droneSynth)  { try { droneSynth.releaseAll(); } catch(e) {} }
+        if (melodySynth) { try { melodySynth.releaseAll(); } catch(e) {} }
+        if (bellSynth)   { try { bellSynth.triggerRelease(); } catch(e) {} }
+        // Dispose all nodes
+        [bellSynth, droneSynth, melodySynth, lfo, filter, chorus, delay, panner, reverb].forEach(node => {
+            if (node) { try { node.dispose(); } catch(e) {} }
+        });
+        bellSynth = droneSynth = melodySynth = lfo = filter = chorus = delay = panner = reverb = null;
+        initialized = false;
+    }
+
+    // Graceful shutdown: fade out master volume, then dispose after fade completes.
+    // Returns a Promise that resolves when cleanup is done.
+    // fadeMs controls how long the fade takes (default 150ms).
+    function gracefulStop(fadeMs) {
+        fadeMs = fadeMs || 150;
+        return new Promise(function(resolve) {
+            if (nextMelodyTimeout) { clearTimeout(nextMelodyTimeout); nextMelodyTimeout = null; }
+
+            // Release held notes so envelopes start their release phase
+            if (droneSynth)  { try { droneSynth.releaseAll(); } catch(e) {} }
+            if (melodySynth) { try { melodySynth.releaseAll(); } catch(e) {} }
+            if (bellSynth)   { try { bellSynth.triggerRelease(); } catch(e) {} }
+
+            // Ramp master volume to silence
+            try {
+                Tone.getDestination().volume.rampTo(-Infinity, fadeMs / 1000);
+            } catch(e) {}
+
+            // Dispose everything after fade completes
+            setTimeout(function() {
+                try { Tone.Transport.stop(); } catch(e) {}
+                [bellSynth, droneSynth, melodySynth, lfo, filter, chorus, delay, panner, reverb].forEach(function(node) {
+                    if (node) { try { node.dispose(); } catch(e) {} }
+                });
+                bellSynth = droneSynth = melodySynth = lfo = filter = chorus = delay = panner = reverb = null;
+                // Restore master volume for next page
+                try { Tone.getDestination().volume.value = 0; } catch(e) {}
+                initialized = false;
+                resolve();
+            }, fadeMs + 50);
+        });
+    }
+
+    // Safety net: pagehide is more reliable than beforeunload on iOS Safari
+    window.addEventListener('pagehide', function() {
+        disposeAll();
+    });
 
     return {
         setup: function(mode) {
             currentMode = mode || 'center';
-            
-            const overlayId = 'sacred-audio-overlay';
-            if (document.getElementById(overlayId)) return;
-
-            // ... The UI overlay is handled inside index.html and direction.html directly now,
-            // or we dynamically create a fallback one here if it doesn't exist.
-            
-            // To prevent duplicate overlays if the HTML already has one, we'll just expose
-            // an init method to be called from the HTML's custom overlay trigger.
         },
-        // Direct init call for HTML custom overlays
         init: async function(mode) {
             currentMode = mode || 'center';
-            // CRITICAL FOR IOS: Tone.start() must happen synchronously 
+            // CRITICAL FOR IOS: Tone.start() must happen synchronously
             // inside the click handler before any awaits.
             if (Tone.context.state !== 'running') {
                 Tone.start();
@@ -273,6 +294,11 @@ const SacredAudio = (function() {
             } catch (err) {
                 console.warn("Audio Context failed to start:", err);
             }
+        },
+        // Graceful stop with fade-out. Call before navigating away.
+        // Usage: SacredAudio.stop().then(() => { window.location.href = '...'; });
+        stop: function() {
+            return gracefulStop(150);
         }
     };
 })();

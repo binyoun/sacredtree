@@ -392,6 +392,17 @@
         backBtn.style.background = `rgba(${cfg.colorRgb}, 0.6)`;
         if (cfg.darkText) backBtn.classList.add('dark-text');
 
+        // Stop audio cleanly before navigating back to landing page
+        backBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const dest = backBtn.href;
+            if (typeof SacredAudio !== 'undefined') {
+                SacredAudio.stop().then(() => { window.location.href = dest; });
+            } else {
+                window.location.href = dest;
+            }
+        });
+
         // Direction label
         document.getElementById('labelEnglish').textContent = cfg.english;
         document.getElementById('labelKoreanChinese').textContent = `${cfg.korean} · ${cfg.chinese}`;
