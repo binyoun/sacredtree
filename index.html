@@ -502,10 +502,10 @@
             const startExperience = () => {
                 overlay.removeEventListener('click', startExperience);
                 overlay.removeEventListener('touchstart', startExperience);
-                
+
                 // Initialize Tone.js Master Audio for the hub using the 'landing' config
                 if (typeof SacredAudio !== 'undefined') {
-                    SacredAudio.init('landing'); 
+                    SacredAudio.init('landing');
                 }
 
                 overlay.style.opacity = '0';
@@ -520,7 +520,7 @@
                 startExperience();
             } else {
                 overlay.addEventListener('click', startExperience);
-                overlay.addEventListener('touchstart', startExperience, {passive: true});
+                overlay.addEventListener('touchstart', startExperience, {passive: false});
             }
 
             // Stop audio cleanly before navigating to any direction page

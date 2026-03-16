@@ -386,3 +386,74 @@ remaining causes: iOS hardware mute switch, AudioContext not actually reaching
 'running' state despite Tone.start(), or FMSynth itself not compatible with
 iOS Safari's Web Audio implementation. Consider testing with a basic Tone.Synth
 instead of FMSynth, or using the @tonejs/unmute library to bypass iOS silent mode.
+
+--------------------------------------------------------------------------------
+12. LANDING PAGE: 3-LAYER GAMELAN-INSPIRED BELL SYSTEM + ECHO
+--------------------------------------------------------------------------------
+Date: 2026-03-16
+
+Redesigned landing page audio from a single bell to a 3-layer generative system
+inspired by Javanese gamelan music (research on slendro/pelog scales, colotomic
+structures, balungan melodic patterns, and cengkok variation system).
+
+Audio architecture (landing page only):
+  3 FMSynth layers → FeedbackDelay → Reverb → Destination (+ direct path)
+
+  Layer 1 — Deep Bell (gong ageng):
+    - Register: C3-C4 (low)
+    - Interval: 12-20 seconds
+    - FMSynth: harmonicity 5.01, modulationIndex 8
+    - Envelope: attack 0.01, decay 4, release 6
+
+  Layer 2 — Mid Bell (saron/kenong):
+    - Register: C4-C5 (mid)
+    - Interval: 3-7 seconds
+    - FMSynth: harmonicity 3.01, modulationIndex 10
+    - Envelope: attack 0.01, decay 2, release 4
+
+  Layer 3 — Sparkle (bonang/peking):
+    - Register: C5-D6 (high)
+    - Interval: 1-2.5 seconds
+    - FMSynth: harmonicity 7.01, modulationIndex 6
+    - Envelope: attack 0.005, decay 1.2, release 2
+
+  Effects:
+    - FeedbackDelay: 1.0s delay, 0.45 feedback, 0.35 wet
+      (each bell hit echoes ~3-4 times, fading)
+    - Reverb: decay 4s (up from 1.5s), wet 0.9, preDelay 0.15
+
+  Melody logic — gamelan-inspired stepwise motion (replaces pure random):
+    - 60% chance: move to neighbor note (±1 scale step)
+    - 25% chance: skip one note (±2 scale steps)
+    - 15% chance: rest (silence — breathing space)
+    - Each layer tracks its own last-note index independently
+
+  Scales (pentatonic, slendro-like):
+    deep:    ['C3', 'F3', 'G3', 'C4']
+    mid:     ['C4', 'D4', 'F4', 'G4', 'A4', 'C5']
+    sparkle: ['C5', 'D5', 'F5', 'G5', 'A5', 'C6', 'D6']
+
+Files modified:
+  - audio.js: Complete rewrite of landing page audio section. Added
+    deepBellSynth, sparkleSynth variables. New functions: pickNextNote()
+    (stepwise motion), startLandingLayer() (generic layer scheduler).
+    Updated disposeAll() and gracefulStop() for 3 synths + landingTimeouts.
+    Landing now uses await Tone.loaded() before playing (same as direction
+    pages — proven iOS pattern).
+  - index.html: touchstart listener changed from passive:true to passive:false.
+
+Desktop browser status: WORKS — all 3 layers audible with echo + reverb.
+iPhone status: STILL SILENT — same unresolved iOS issue from session 11.
+  Console shows context state: suspended even after Tone.start().
+  Tried multiple approaches:
+    - Moving Tone.start() + context.resume() to HTML handler directly
+    - Playing quick bell synchronously before async initTone()
+    - await Tone.context.resume() before node creation
+  None resolved the iOS silence. Direction pages still work fine on iOS.
+
+Next steps for iOS investigation:
+  - Try replacing FMSynth with basic Tone.Synth (simpler oscillator)
+  - Test with @tonejs/unmute library
+  - Check if iOS hardware mute switch affects Web Audio
+  - Remote Safari Web Inspector debugging from Mac → iPhone
+  - Compare exact call stack between working direction page and broken landing

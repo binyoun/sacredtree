@@ -8,10 +8,11 @@ const SacredAudio = (function() {
 
     // Synths for Direction pages
     let droneSynth, melodySynth;
-    // Synth for Landing page (single FMSynth — lighter on iOS than PolySynth)
-    let bellSynth;
+    // Synths for Landing page (3-layer gamelan-inspired bells)
+    let bellSynth, deepBellSynth, sparkleSynth;
 
     let nextMelodyTimeout;
+    let landingTimeouts = [];  // track all landing layer timeouts
 
     // Musical parameters per direction (Wu Xing cosmology)
     const config = {
@@ -56,7 +57,10 @@ const SacredAudio = (function() {
             droneOsc: 'sine'
         },
         landing: {
-            scale: ['C5', 'D5', 'F5', 'G5', 'A5', 'C6', 'D6']
+            // 3-layer gamelan-inspired pentatonic (slendro-like: 1-2-3-5-6)
+            deep:    ['C3', 'F3', 'G3', 'C4'],                         // gong ageng layer
+            mid:     ['C4', 'D4', 'F4', 'G4', 'A4', 'C5'],            // saron/kenong layer
+            sparkle: ['C5', 'D5', 'F5', 'G5', 'A5', 'C6', 'D6']      // bonang/peking layer
         }
     };
 
@@ -72,59 +76,78 @@ const SacredAudio = (function() {
         // on iOS the duplicate call can confuse the AudioContext state.
 
         // --- MASTER EFFECTS ---
-        const reverbDecay = (currentMode === 'landing') ? 1.5 : 20;
+        const reverbDecay = (currentMode === 'landing') ? 4 : 20;
+        const reverbWet  = (currentMode === 'landing') ? 0.9 : 1.;
         reverb = new Tone.Reverb({
             decay: reverbDecay,
-            preDelay: 0.1,
-            wet: 0.75
+            preDelay: 0.15,
+            wet: reverbWet
         }).toDestination();
 
         if (currentMode === 'landing') {
-            // --- LANDING PAGE AUDIO ROUTING (FM BELLS) ---
+            // --- LANDING PAGE: 3-LAYER GAMELAN-INSPIRED BELLS ---
+            // Follow same pattern as direction pages (proven to work on iOS):
+            // create all nodes → await Tone.loaded() → THEN play.
             console.log('[SacredAudio] Landing init, context state:', Tone.context.state);
 
-            // Simple bell synth connected straight to reverb (skip heavy effects for iOS)
+            // Echo: each bell hit repeats ~3-4 times, fading out
+            delay = new Tone.FeedbackDelay({
+                delayTime: 1.0,
+                feedback: 0.45,
+                wet: 0.35
+            }).connect(reverb);
+
+            // Layer 1: Deep bell (gong ageng — low, slow, resonant)
+            deepBellSynth = new Tone.FMSynth({
+                harmonicity: 5.01,
+                modulationIndex: 8,
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.01, decay: 4, sustain: 0.05, release: 6 },
+                modulation: { type: "square" },
+                modulationEnvelope: { attack: 0.01, decay: 0.8, sustain: 0, release: 0.2 },
+                volume: -22
+            });
+            deepBellSynth.connect(delay);
+            deepBellSynth.toDestination();
+
+            // Layer 2: Mid bell (saron/kenong — medium register)
             bellSynth = new Tone.FMSynth({
                 harmonicity: 3.01,
                 modulationIndex: 10,
                 oscillator: { type: "sine" },
-                envelope: {
-                    attack: 0.01,
-                    decay: 2,
-                    sustain: 0.1,
-                    release: 4
-                },
+                envelope: { attack: 0.01, decay: 2, sustain: 0.1, release: 4 },
                 modulation: { type: "square" },
-                modulationEnvelope: {
-                    attack: 0.01,
-                    decay: 0.5,
-                    sustain: 0,
-                    release: 0.1
-                },
-                volume: -16
-            }).connect(reverb);
-
-            console.log('[SacredAudio] Bell synth created, playing first bell immediately');
-
-            // Play first bell IMMEDIATELY — don't wait for Tone.loaded()
-            // This ensures iOS hears something right away within the user gesture window
-            try {
-                bellSynth.triggerAttackRelease('C5', 0.1);
-                console.log('[SacredAudio] First bell triggered');
-            } catch(e) {
-                console.error('[SacredAudio] First bell failed:', e);
-            }
-
-            // Start generative bells (scheduling continues regardless)
-            playLandingGenerativeBells(true);
-            initialized = true;
-
-            // Load reverb IR in background (non-blocking)
-            Tone.loaded().then(() => {
-                console.log('[SacredAudio] Tone.loaded() resolved');
-            }).catch(e => {
-                console.error('[SacredAudio] Tone.loaded() failed:', e);
+                modulationEnvelope: { attack: 0.01, decay: 0.5, sustain: 0, release: 0.1 },
+                volume: -20
             });
+            bellSynth.connect(delay);
+            bellSynth.toDestination();
+
+            // Layer 3: Sparkle (bonang/peking — high, light, frequent)
+            sparkleSynth = new Tone.FMSynth({
+                harmonicity: 7.01,
+                modulationIndex: 6,
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.005, decay: 1.2, sustain: 0, release: 2 },
+                modulation: { type: "sine" },
+                modulationEnvelope: { attack: 0.005, decay: 0.3, sustain: 0, release: 0.1 },
+                volume: -26
+            });
+            sparkleSynth.connect(delay);
+            sparkleSynth.toDestination();
+
+            console.log('[SacredAudio] 3-layer bell synths created (with echo)');
+
+            // Wait for ALL async resources (reverb IR, etc) — same as direction pages
+            await Tone.loaded();
+            console.log('[SacredAudio] Tone.loaded() resolved, context:', Tone.context.state);
+
+            // NOW start playing — context is running, all nodes ready
+            landingTimeouts = [];
+            startLandingLayer('deep', deepBellSynth, config.landing.deep, 12000, 20000, true);
+            startLandingLayer('mid', bellSynth, config.landing.mid, 3000, 7000, true);
+            startLandingLayer('sparkle', sparkleSynth, config.landing.sparkle, 1000, 2500, true);
+            initialized = true;
 
         } else {
             // --- DIRECTION PAGE AUDIO ROUTING (AMBIENT DRONE) ---
@@ -134,7 +157,7 @@ const SacredAudio = (function() {
                 frequency: 0.5,
                 delayTime: 3.5,
                 depth: 0.8,
-                wet: 0.6
+                wet: .6
             }).connect(reverb);
 
             filter = new Tone.Filter({
@@ -182,19 +205,44 @@ const SacredAudio = (function() {
         }
     }
 
-    // --- LANDING PAGE GENERATIVE LOGIC ---
-    function playLandingGenerativeBells(isInitial) {
-        const scale = config.landing.scale;
-        const randomNote = scale[Math.floor(Math.random() * scale.length)];
+    // --- LANDING PAGE: GAMELAN-INSPIRED GENERATIVE LOGIC ---
+    // Stepwise motion state per layer (tracks last note index for neighbor preference)
+    const layerState = { deep: 0, mid: 0, sparkle: 0 };
 
-        // Only play if context is running, but ALWAYS schedule next bell
-        // (prevents the scheduling chain from dying on iOS)
-        if (Tone.context.state === 'running' && bellSynth) {
-            bellSynth.triggerAttackRelease(randomNote, 0.1);
+    // Pick next note using gamelan-style stepwise motion:
+    // 60% neighbor step, 25% skip one, 15% rest (return null)
+    function pickNextNote(scale, layerName) {
+        const roll = Math.random();
+        if (roll < 0.15) return null; // rest — silence is part of the music
+
+        let idx = layerState[layerName];
+        if (roll < 0.75) {
+            // stepwise: move ±1
+            idx += (Math.random() < 0.5) ? 1 : -1;
+        } else {
+            // skip: move ±2
+            idx += (Math.random() < 0.5) ? 2 : -2;
         }
+        // wrap around scale
+        idx = ((idx % scale.length) + scale.length) % scale.length;
+        layerState[layerName] = idx;
+        return scale[idx];
+    }
 
-        const nextTime = isInitial ? 500 : (Math.random() * 8000 + 4000);
-        nextMelodyTimeout = setTimeout(() => playLandingGenerativeBells(false), nextTime);
+    // Generic layer scheduler — each layer loops independently
+    function startLandingLayer(layerName, synth, scale, minMs, maxMs, isInitial) {
+        function tick() {
+            var note = pickNextNote(scale, layerName);
+            if (Tone.context.state === 'running' && synth && note) {
+                synth.triggerAttackRelease(note, 0.1);
+            }
+            var next = isInitial ? 800 : (Math.random() * (maxMs - minMs) + minMs);
+            isInitial = false;
+            var t = setTimeout(tick, next);
+            landingTimeouts.push(t);
+        }
+        var t = setTimeout(tick, isInitial ? 500 : (Math.random() * (maxMs - minMs) + minMs));
+        landingTimeouts.push(t);
     }
 
     // --- DIRECTION PAGE GENERATIVE LOGIC ---
@@ -227,16 +275,20 @@ const SacredAudio = (function() {
     // Immediately dispose all nodes (no fade — used for re-init path)
     function disposeAll() {
         if (nextMelodyTimeout) { clearTimeout(nextMelodyTimeout); nextMelodyTimeout = null; }
+        landingTimeouts.forEach(function(t) { clearTimeout(t); });
+        landingTimeouts = [];
         try { Tone.Transport.stop(); } catch(e) {}
         // Release held notes before disposing
         if (droneSynth)  { try { droneSynth.releaseAll(); } catch(e) {} }
         if (melodySynth) { try { melodySynth.releaseAll(); } catch(e) {} }
         if (bellSynth)   { try { bellSynth.triggerRelease(); } catch(e) {} }
+        if (deepBellSynth) { try { deepBellSynth.triggerRelease(); } catch(e) {} }
+        if (sparkleSynth)  { try { sparkleSynth.triggerRelease(); } catch(e) {} }
         // Dispose all nodes
-        [bellSynth, droneSynth, melodySynth, lfo, filter, chorus, delay, panner, reverb].forEach(node => {
+        [bellSynth, deepBellSynth, sparkleSynth, droneSynth, melodySynth, lfo, filter, chorus, delay, panner, reverb].forEach(node => {
             if (node) { try { node.dispose(); } catch(e) {} }
         });
-        bellSynth = droneSynth = melodySynth = lfo = filter = chorus = delay = panner = reverb = null;
+        bellSynth = deepBellSynth = sparkleSynth = droneSynth = melodySynth = lfo = filter = chorus = delay = panner = reverb = null;
         initialized = false;
     }
 
@@ -247,11 +299,15 @@ const SacredAudio = (function() {
         fadeMs = fadeMs || 150;
         return new Promise(function(resolve) {
             if (nextMelodyTimeout) { clearTimeout(nextMelodyTimeout); nextMelodyTimeout = null; }
+            landingTimeouts.forEach(function(t) { clearTimeout(t); });
+            landingTimeouts = [];
 
             // Release held notes so envelopes start their release phase
             if (droneSynth)  { try { droneSynth.releaseAll(); } catch(e) {} }
             if (melodySynth) { try { melodySynth.releaseAll(); } catch(e) {} }
             if (bellSynth)   { try { bellSynth.triggerRelease(); } catch(e) {} }
+            if (deepBellSynth) { try { deepBellSynth.triggerRelease(); } catch(e) {} }
+            if (sparkleSynth)  { try { sparkleSynth.triggerRelease(); } catch(e) {} }
 
             // Ramp master volume to silence
             try {
@@ -261,10 +317,10 @@ const SacredAudio = (function() {
             // Dispose everything after fade completes
             setTimeout(function() {
                 try { Tone.Transport.stop(); } catch(e) {}
-                [bellSynth, droneSynth, melodySynth, lfo, filter, chorus, delay, panner, reverb].forEach(function(node) {
+                [bellSynth, deepBellSynth, sparkleSynth, droneSynth, melodySynth, lfo, filter, chorus, delay, panner, reverb].forEach(function(node) {
                     if (node) { try { node.dispose(); } catch(e) {} }
                 });
-                bellSynth = droneSynth = melodySynth = lfo = filter = chorus = delay = panner = reverb = null;
+                bellSynth = deepBellSynth = sparkleSynth = droneSynth = melodySynth = lfo = filter = chorus = delay = panner = reverb = null;
                 // Restore master volume for next page
                 try { Tone.getDestination().volume.value = 0; } catch(e) {}
                 initialized = false;
@@ -284,10 +340,11 @@ const SacredAudio = (function() {
         },
         init: async function(mode) {
             currentMode = mode || 'center';
-            // CRITICAL FOR IOS: Tone.start() must happen synchronously
-            // inside the click handler before any awaits.
+            // Tone.start() is now called in the HTML handler directly (user gesture).
+            // Fallback in case it wasn't:
             if (Tone.context.state !== 'running') {
                 Tone.start();
+                Tone.context.resume();
             }
             try {
                 await initTone();
