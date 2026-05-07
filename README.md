@@ -1,4 +1,4 @@
-# Sacred Tree: Summoning Gelora
+# Sacred Tree: Summoning Gelora [gelora-xr.xyz](https://gelora-xr.xyz)
 
 ### 신목 · 神木
 
