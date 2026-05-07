@@ -1,6 +1,6 @@
-# Sacred Tree: Summoning Gelora [gelora-xr.xyz](https://gelora-xr.xyz)
+# Sacred Tree: Summoning Gelora 
 
-### 신목 · 神木
+### 신목 · 神木 [gelora-xr.xyz](https://gelora-xr.xyz)
 
 **A cosmotechnical XR ritual where mediated touch and generative sound reanimate fallen flowers as shared hybrid beings, from pixel to voxel.**
 
