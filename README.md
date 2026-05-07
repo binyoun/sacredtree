@@ -14,6 +14,7 @@
 |---|---|
 | [![Showcase](https://vumbnail.com/1173399028.jpg)](https://vimeo.com/1173399028) | [![Artists](https://vumbnail.com/1173401064.jpg)](https://vimeo.com/1173401064) |
 | Full project showcase | Bin Youn & Patrick Hartono |
+| [▶ Watch on YouTube](https://youtu.be/yF0EgZlqjAc?si=RLqIt3Io9ACnQSJC) | [▶ Watch on YouTube](https://youtu.be/i_U2ZC7cXNk?si=1Rb5QBO0PWWX2osL) |
 
 ---
 
