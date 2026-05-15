@@ -38,7 +38,7 @@ In Korean folk tradition, a sacred tree is a living shrine where a village gathe
 
 Five colored portals extend from the central tree, each mapped to a cardinal direction, season, and element from 오방색 (obangsaek), the East Asian cosmological color system.
 
-| Direction | Korean | Element | Gelora Character |
+| Direction - Korean | Chinese Character | Element | Gelora Character |
 |---|---|---|---|
 | South · 남 | 火 | Fire | Blazing with the intensity of summer noon, embodying transformation and radiant power |
 | Center · 중 | 土 | Earth | Dwelling at the sacred axis where all directions meet, holding the grounding force of stillness |
